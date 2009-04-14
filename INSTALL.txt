@@ -129,7 +129,10 @@ INSTALLATION
 First make sure that all SciPy prerequisites are installed and working
 properly.  Then be sure to remove any old SciPy installations (e.g.
 /usr/lib/python2.4/site-packages/scipy or $HOME/lib/python2.4/
-site-packages/scipy).
+site-packages/scipy). On windows, if you installed scipy previously from a
+binary, use the remove facility from the add/remove softwares panel, or remote
+the scipy directory by hand if you installed from sources (e.g.
+C:\Python24\Lib\site-packages\scipy for python 2.4).
 
 From tarballs
 -------------
@@ -140,14 +143,15 @@ directory, and run
   python setup.py install
 
 This may take several minutes to an hour depending on the speed of your
-computer.  This may require root privileges.  To install to a
-user-specific location instead, run
+computer.  To install to a user-specific location instead, run
 
   python setup.py install --prefix=$MYDIR
 
 where $MYDIR is, for example, $HOME or $HOME/usr.
 
-
+        ** Note 1: On Unix, you should avoid installing in /usr, but rather in
+        /usr/local or somewhere else. /usr is generally 'owned' by your package
+        manager, and you may overwrite a packaged scipy this way.
 
 TESTING
 =======

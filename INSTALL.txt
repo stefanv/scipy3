@@ -47,6 +47,9 @@ from netlib__ sources. Building those libraries on windows may be difficult, as
 they assume a unix-style environment. Please use the binaries if you don't feel
 comfortable with cygwin, make and similar tools.
 
+__ http://math-atlas.sourceforge.net/
+__ http://www.netlib.org/lapack/
+
 Mac OS X
 --------
 
@@ -84,7 +87,7 @@ You can get all the dependencies as follows:
         sudo apt-get install python python-dev libatlas3-base-dev gcc gfortran g++
 
 Ubuntu < 8.10, Debian
-~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
 
 You can get all the dependencies as follows:
 

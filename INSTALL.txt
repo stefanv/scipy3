@@ -43,7 +43,9 @@ Blas/Lapack
 
 Blas/Lapack are core routines for linear algebra (vector/matrix operations).
 You should use ATLAS__ with a full LAPACK, or simple BLAS/LAPACK built with g77
-from netlib__ sources.
+from netlib__ sources. Building those libraries on windows may be difficult, as
+they assume a unix-style environment. Please use the binaries if you don't feel
+comfortable with cygwin, make and similar tools.
 
 Mac OS X
 --------
@@ -57,7 +59,8 @@ which is not included with Xcode: you should use gfortran from this page:
 
 __ http://r.research.att.com/tools/
 
-Please do NOT use gfortran from hpc.sourceforge.net
+Please do NOT use gfortran from hpc.sourceforge.net, it is known to generate
+buggy scipy binaries.
 
 __Xcode: http://developer.apple.com/TOOLS/xcode
 

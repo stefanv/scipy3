@@ -284,21 +284,6 @@ To fix: follow the instructions in
   to create a complete liblapack.a. Then copy liblapack.a to the same
   location where libatlas.a is installed and retry with scipy build.
 
-Using ATLAS 3.2.1
------------------
-If import clapack fails with the following error
-::
-  
-  ImportError: .../clapack.so : undefined symbol: clapack_sgetri
-
-then you most probably have ATLAS 3.2.1 but linalg module was built
-for newer versions of ATLAS.
-Fix:
-
-  1) Remove Lib/linalg/clapack.pyf
-
-  2) Rebuild/reinstall scipy.
-
 Using non-GNU Fortran Compiler
 ------------------------------
 If import scipy shows a message

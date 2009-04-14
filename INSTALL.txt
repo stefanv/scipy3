@@ -41,7 +41,9 @@ __ http://www.mingw.org
 Blas/Lapack
 ~~~~~~~~~~~
 
-You should use ATLAS__ with a full LAPACK.
+Blas/Lapack are core routines for linear algebra (vector/matrix operations).
+You should use ATLAS__ with a full LAPACK, or simple BLAS/LAPACK built with g77
+from netlib__ sources.
 
 Mac OS X
 --------

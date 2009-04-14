@@ -82,14 +82,14 @@ instructions for the most common ones:
 Ubuntu >= 8.10
 ~~~~~~~~~~~~~~
 
-You can get all the dependencies as follows:
+You can get all the dependencies as follows::
 
         sudo apt-get install python python-dev libatlas3-base-dev gcc gfortran g++
 
 Ubuntu < 8.10, Debian
 ~~~~~~~~~~~~~~~~~~~~~
 
-You can get all the dependencies as follows:
+You can get all the dependencies as follows::
 
         sudo apt-get install python python-dev atlas3-base-dev gcc g77 g++
 
@@ -118,7 +118,7 @@ Use the command::
 
 Before building and installing from SVN, remove the old installation
 (e.g. in /usr/lib/python2.4/site-packages/scipy or
-$HOME/lib/python2.4/site-packages/scipy).  Then type:
+$HOME/lib/python2.4/site-packages/scipy).  Then type::
 
   cd scipy
   rm -rf build
@@ -146,7 +146,7 @@ directory, and run
   python setup.py install
 
 This may take several minutes to an hour depending on the speed of your
-computer.  To install to a user-specific location instead, run
+computer.  To install to a user-specific location instead, run::
 
   python setup.py install --prefix=$MYDIR
 
@@ -170,9 +170,9 @@ To run the full test suite use
 
 Please note that you must have version 0.10 or later of the 'nose' test
 framework installed in order to run the tests.  More information about nose is
-available here:
+available on the website__.
 
-http://somethingaboutorange.com/mrl/projects/nose/
+__ http://somethingaboutorange.com/mrl/projects/nose/
 
 COMPILER NOTES
 ==============

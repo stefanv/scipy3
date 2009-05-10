@@ -95,10 +95,10 @@ DOC_BLD = DOC_ROOT / "build"
 DOC_BLD_LATEX = DOC_BLD / "latex"
 
 # Source of the release notes
-RELEASE = 'doc/release/1.3.0-notes.rst'
+RELEASE = 'doc/release/0.8.0-notes.rst'
 
 # Start/end of the log (from git)
-LOG_START = 'tags/1.2.0'
+LOG_START = 'svn/tags/0.7.0'
 LOG_END = 'master'
 
 # Virtualenv bootstrap stuff
@@ -112,7 +112,8 @@ INSTALLERS_DIR = os.path.join(RELEASE_DIR, 'installers')
 
 
 options(sphinx=Bunch(builddir="build", sourcedir="source", docroot='doc'),
-        virtualenv=Bunch(script_name=BOOTSTRAP_SCRIPT, packages_to_install=["sphinx==0.6.1"]),
+        virtualenv=Bunch(script_name=BOOTSTRAP_SCRIPT,
+        packages_to_install=["sphinx==0.6.1"]),
         wininst=Bunch(pyver="2.5", scratch=True))
 
 # Bootstrap stuff

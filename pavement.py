@@ -373,10 +373,12 @@ def mpkg_name():
             (FULLVERSION, pyver, maj, min)
 
 def dmg_name():
-    maj, min = macosx_version()[:2]
+    #maj, min = macosx_version()[:2]
     pyver = ".".join([str(i) for i in sys.version_info[:2]])
-    return "scipy-%s-py%s-macosx%s.%s.dmg" % \
-            (FULLVERSION, pyver, maj, min)
+    #return "scipy-%s-py%s-macosx%s.%s.dmg" % \
+    #        (FULLVERSION, pyver, maj, min)
+    return "scipy-%s-py%s-python.org.dmg" % \
+            (FULLVERSION, pyver)
 
 def prepare_static_gfortran_runtime(d):
     if not os.path.exists(d):
@@ -439,10 +441,10 @@ def dmg():
 @task
 def simple_dmg():
     # Build the dmg
-    image_name = "scipy-%s.dmg" % FULLVERSION
+    image_name = dmg_name()
     image = paver.path.path(image_name)
     image.remove()
-    cmd = ["hdiutil", "create", image_name, "-srcdir", str(builddir)]
+    cmd = ["hdiutil", "create", image_name, "-srcdir", str("dist")]
     sh(" ".join(cmd))
 
 @task

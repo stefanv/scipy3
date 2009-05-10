@@ -84,6 +84,8 @@ SUPERPACK_BINDIR = os.path.join(SUPERPACK_BUILD, 'binaries')
 # XXX: fix this in a sane way
 MPKG_PYTHON = {"25": "/Library/Frameworks/Python.framework/Versions/2.5/bin/python",
         "26": "/Library/Frameworks/Python.framework/Versions/2.6/bin/python"}
+# Full path to the *static* gfortran runtime
+LIBGFORTRAN_A_PATH = "/usr/local/lib/libgfortran.a"
 
 # Where to put built documentation (where it will picked up for copy to
 # binaries)
@@ -375,6 +377,11 @@ def dmg_name():
     pyver = ".".join([str(i) for i in sys.version_info[:2]])
     return "scipy-%s-py%s-macosx%s.%s.dmg" % \
             (FULLVERSION, pyver, maj, min)
+
+def prepare_static_gfortran_runtime(d):
+    if not os.path.exists(d):
+        os.makedirs(d)
+    shutil.copy(LIBGFORTRAN_A_PATH, d)
 
 @task
 def bdist_mpkg():

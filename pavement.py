@@ -386,8 +386,12 @@ def prepare_static_gfortran_runtime(d):
 @task
 def bdist_mpkg():
     call_task("clean")
+
+    prepare_static_gfortran_runtime("build")
+    ldflags = "-undefined dynamic_lookup -bundle -arch i386 -arch ppc -Wl,-search_paths_first"
+    ldflags += " -L%s" % os.path.join(os.path.dirname(__file__), "build")
     pyver = "".join([str(i) for i in sys.version_info[:2]])
-    sh("%s setupegg.py bdist_mpkg" % MPKG_PYTHON[pyver])
+    sh("LDFLAGS='%s' %s setupegg.py bdist_mpkg" % (ldflags, MPKG_PYTHON[pyver]))
 
 @task
 @needs("bdist_mpkg", "pdf")

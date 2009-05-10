@@ -62,8 +62,12 @@ import paver.doctools
 import paver.path
 from paver.easy import options, Bunch, task, needs, dry, sh, call_task
 
-setup_py = __import__("setup")
-FULLVERSION = setup_py.FULLVERSION
+sys.path.insert(0, os.path.dirname(__file__))
+try:
+    setup_py = __import__("setup")
+    FULLVERSION = setup_py.FULLVERSION
+finally:
+    sys.path.pop(0)
 
 # Wine config for win32 builds
 WINE_SITE_CFG = ""

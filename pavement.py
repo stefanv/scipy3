@@ -81,6 +81,10 @@ WINE_PYS = {'2.6' : WINE_PY26, '2.5': WINE_PY25}
 SUPERPACK_BUILD = 'build-superpack'
 SUPERPACK_BINDIR = os.path.join(SUPERPACK_BUILD, 'binaries')
 
+# XXX: fix this in a sane way
+MPKG_PYTHON = {"25": "/Library/Frameworks/Python.framework/Versions/2.5/bin/python",
+        "26": "/Library/Frameworks/Python.framework/Versions/2.6/bin/python"}
+
 # Where to put built documentation (where it will picked up for copy to
 # binaries)
 PDF_DESTDIR = paver.path.path('build') / 'pdf'
@@ -106,12 +110,9 @@ BOOTSTRAP_SCRIPT = "%s/bootstrap.py" % BOOTSTRAP_DIR
 RELEASE_DIR = 'release'
 INSTALLERS_DIR = os.path.join(RELEASE_DIR, 'installers')
 
-# XXX: fix this in a sane way
-MPKG_PYTHON = {"25": "/Library/Frameworks/Python.framework/Versions/2.5/bin/python",
-        "26": "/Library/Frameworks/Python.framework/Versions/2.6/bin/python"}
 
 options(sphinx=Bunch(builddir="build", sourcedir="source", docroot='doc'),
-        virtualenv=Bunch(script_name=BOOTSTRAP_SCRIPT,packages_to_install=["sphinx==0.6.1"]),
+        virtualenv=Bunch(script_name=BOOTSTRAP_SCRIPT, packages_to_install=["sphinx==0.6.1"]),
         wininst=Bunch(pyver="2.5", scratch=True))
 
 # Bootstrap stuff
@@ -187,7 +188,9 @@ def write_release():
 def write_log():
     write_log_task()
 
-# Doc stuff
+#------------
+# Doc tasks
+#------------
 @task
 def html(options):
     """Build scipy documentation and put it into build/docs"""

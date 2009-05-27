@@ -174,6 +174,54 @@ static int _imp_correlate_nd_c@fsuf@(PyArrayNeighIterObject *curx,
 }
 /**end repeat**/
 
+static int _imp_correlate_nd_object(PyArrayNeighIterObject *curx,
+        PyArrayNeighIterObject *curneighx, PyArrayIterObject *ity,
+        PyArrayIterObject *itz)
+{
+    int i, j;
+    PyObject *tmp, *tmp2;
+    char *zero;
+    PyArrayIterObject *curneighxbase = (PyArrayIterObject*)curneighx;
+    PyArrayIterObject *curxbase = (PyArrayIterObject*)curx;
+    PyArray_CopySwapFunc *copyswap = curxbase->ao->descr->f->copyswap;
+
+    zero = PyArray_Zero(curxbase->ao);
+
+    for(i = 0; i < curxbase->size; ++i) {
+        PyArrayNeighIter_Reset(curneighx);
+        copyswap(itz->dataptr, zero, 0, NULL);
+
+        for(j = 0; j < curneighxbase->size; ++j) {
+            /*
+             * compute tmp2 = acc + x * y. Not all objects supporting the
+             * number protocol support inplace operations, so we do it the most
+             * straightfoward way.
+             */
+            tmp = PyNumber_Multiply(*((PyObject**)curneighxbase->dataptr),
+                                    *((PyObject**)ity->dataptr));
+            tmp2 = PyNumber_Add(*((PyObject**)itz->dataptr), tmp);
+            Py_DECREF(tmp);
+
+            /* Update current output item (acc) */
+            Py_DECREF(*((PyObject**)itz->dataptr));
+            *((PyObject**)itz->dataptr) = tmp2;
+
+            PyArrayNeighIter_Next(curneighx);
+            PyArray_ITER_NEXT(ity);
+        }
+
+        PyArrayNeighIter_Next(curx);
+
+        PyArray_ITER_NEXT(itz);
+
+        PyArray_ITER_RESET(ity);
+    }
+
+    PyDataMem_FREE(zero);
+
+    return 0;
+}
+
 /* XXX: this func is useless */
 static int _correlate_nd(PyArrayObject* x, PyArrayObject *y, PyArrayObject *z,
         int typenum, int mode)
@@ -281,8 +329,8 @@ static int _correlate_nd_imp(PyArrayIterObject* itx, PyArrayIterObject *ity,
 
     switch(typenum) {
 /**begin repeat
- * #TYPE = UBYTE, BYTE, USHORT, SHORT, UINT, INT, ULONG, LONG, ULONGLONG, LONGLONG, FLOAT, DOUBLE, LONGDOUBLE, CFLOAT, CDOUBLE, CLONGDOUBLE#
- * #type = ubyte, byte, ushort, short, uint, int, ulong, long, ulonglong, longlong, float, double, longdouble, cfloat, cdouble, clongdouble#
+ * #TYPE = UBYTE, BYTE, USHORT, SHORT, UINT, INT, ULONG, LONG, ULONGLONG, LONGLONG, FLOAT, DOUBLE, LONGDOUBLE, CFLOAT, CDOUBLE, CLONGDOUBLE, OBJECT#
+ * #type = ubyte, byte, ushort, short, uint, int, ulong, long, ulonglong, longlong, float, double, longdouble, cfloat, cdouble, clongdouble, object#
  */
         case PyArray_@TYPE@:
             _imp_correlate_nd_@type@(curx, curneighx, ity, itz);

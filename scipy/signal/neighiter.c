@@ -12,27 +12,32 @@ PyArrayNeighIter_New(PyArrayIterObject *x, const npy_intp *bounds)
     int i;
     PyArrayNeighIterObject *ret;
 
-    ret = malloc(sizeof(*ret));
+    ret = PyArray_malloc(sizeof(*ret));
+    PyObject_Init((PyObject *)ret, &PyArrayNeighIter_Type);
     if (ret == NULL) {
         return NULL;
     }
+
+    Py_INCREF(x);
+    ret->_internal_iter = x;
+
+    Py_INCREF(x->ao);
+    ret->base.ao = x->ao;
     ret->nd = x->ao->nd;
 
-    ret->_iter = x;
-
     /* Compute the neighborhood size and copy the shape */
-    ret->size = 1;
+    ret->base.size = 1;
     for(i = 0; i < ret->nd; ++i) {
-        ret->_bounds[i][0] = bounds[2 * i];
-        ret->_bounds[i][1] = bounds[2 * i + 1];
-        ret->size *= (bounds[2*i+1] - bounds[2*i]) + 1;
+        ret->bounds[i][0] = bounds[2 * i];
+        ret->bounds[i][1] = bounds[2 * i + 1];
+        ret->base.size *= (bounds[2*i+1] - bounds[2*i]) + 1;
     }
 
     for(i = 0; i < ret->nd; ++i) {
-        ret->_strides[i] = x->ao->strides[i];
-        ret->_dims[i] = x->ao->dimensions[i];
+        ret->base.strides[i] = x->ao->strides[i];
+        ret->dimensions[i] = x->ao->dimensions[i];
     }
-    ret->_zero = PyArray_Zero(x->ao);
+    ret->zero = PyArray_Zero(x->ao);
 
     /*
      * XXX: we force x iterator to be non contiguous because we need
@@ -45,8 +50,10 @@ PyArrayNeighIter_New(PyArrayIterObject *x, const npy_intp *bounds)
     return ret;
 }
 
+#if 0
 void PyArrayNeighIter_Delete(PyArrayNeighIterObject* iter)
 {
     PyDataMem_FREE(iter->_zero);
     free(iter);
 }
+#endif

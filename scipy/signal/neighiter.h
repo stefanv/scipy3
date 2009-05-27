@@ -3,27 +3,55 @@
 
 #include <Python.h>
 
-#define PY_ARRAY_UNIQUE_SYMBOL _scipy_signal_ARRAY_API
-#define NO_IMPORT_ARRAY
+//#define PY_ARRAY_UNIQUE_SYMBOL _scipy_signal_ARRAY_API
+//#define NO_IMPORT_ARRAY
 #include <numpy/ndarrayobject.h>
 
-typedef struct {
-    npy_intp nd;
-    /* size is the number of neighbors */
-    npy_intp size;
-    char* dataptr;
+#ifndef NPY_INLINE
+#define NPY_INLINE inline
+#endif
 
-    /*
-     * privates attributes
-     */
-    npy_intp _dims[NPY_MAXDIMS];
-    npy_intp _strides[NPY_MAXDIMS];
-    npy_intp _bounds[NPY_MAXDIMS][2];
-    /* _coordinates are relatively to the array point */
-    npy_intp _coordinates[NPY_MAXDIMS];
-    PyArrayIterObject* _iter;
-    char* _zero;
+typedef struct {
+    /* Keep this as the first item, so that casting a PyArrayNeighIterObject*
+     * to a PyArrayIterObject* works */
+    PyArrayIterObject base;
+
+    npy_intp nd;
+
+    npy_intp dimensions[NPY_MAXDIMS];
+    npy_intp bounds[NPY_MAXDIMS][2];
+
+    /* Neighborhood points coordinates are computed relatively to the point pointed
+     * by _internal_iter */
+    PyArrayIterObject* _internal_iter;
+    char* zero;
 } PyArrayNeighIterObject;
+
+static PyTypeObject PyArrayNeighIter_Type = {
+    PyObject_HEAD_INIT(NULL)
+    0,                         /*ob_size*/
+    "foo.neigh_internal_iter",          /*tp_name*/
+    sizeof(PyArrayNeighIterObject), /*tp_basicsize*/
+    0,                         /*tp_itemsize*/
+    0,                         /*tp_dealloc*/
+    0,                         /*tp_print*/
+    0,                         /*tp_getattr*/
+    0,                         /*tp_setattr*/
+    0,                         /*tp_compare*/
+    0,                         /*tp_repr*/
+    0,                         /*tp_as_number*/
+    0,                         /*tp_as_sequence*/
+    0,                         /*tp_as_mapping*/
+    0,                         /*tp_hash */
+    0,                         /*tp_call*/
+    0,                         /*tp_str*/
+    0,                         /*tp_getattro*/
+    0,                         /*tp_setattro*/
+    0,                         /*tp_as_buffer*/
+    Py_TPFLAGS_DEFAULT,        /*tp_flags*/
+    0,                         /* tp_doc */
+};
+
 
 /*
  * Public API
@@ -31,26 +59,24 @@ typedef struct {
 PyArrayNeighIterObject*
 PyArrayNeighIter_New(PyArrayIterObject* iter, const npy_intp *bounds);
 
-void PyArrayNeighIter_Delete(PyArrayNeighIterObject* iter);
-
-static NPY_INLINE int PyArrayNeighIter_Reset(PyArrayNeighIterObject* iter);
-static NPY_INLINE int PyArrayNeighIter_Next(PyArrayNeighIterObject* iter);
+NPY_INLINE int PyArrayNeighIter_Reset(PyArrayNeighIterObject* iter);
+NPY_INLINE int PyArrayNeighIter_Next(PyArrayNeighIterObject* iter);
 
 /*
  * Private API (here for inline)
  */
-static NPY_INLINE int _PyArrayNeighIter_IncrCoord(PyArrayNeighIterObject* iter);
-static NPY_INLINE int _PyArrayNeighIter_SetPtr(PyArrayNeighIterObject* iter);
+NPY_INLINE int _PyArrayNeighIter_IncrCoord(PyArrayNeighIterObject* iter);
+NPY_INLINE int _PyArrayNeighIter_SetPtr(PyArrayNeighIterObject* iter);
 
 /*
  * Inline implementations
  */
-static NPY_INLINE int PyArrayNeighIter_Reset(PyArrayNeighIterObject* iter)
+NPY_INLINE int PyArrayNeighIter_Reset(PyArrayNeighIterObject* iter)
 {
     int i;
 
     for(i = 0; i < iter->nd; ++i) {
-        iter->_coordinates[i] = iter->_bounds[i][0];
+        iter->base.coordinates[i] = iter->bounds[i][0];
     }
     _PyArrayNeighIter_SetPtr(iter);
 
@@ -74,41 +100,40 @@ static NPY_INLINE int PyArrayNeighIter_Reset(PyArrayNeighIterObject* iter)
  * 0,  -1,  0
  *  ....
  */
-static NPY_INLINE int _PyArrayNeighIter_IncrCoord(PyArrayNeighIterObject* iter)
+NPY_INLINE int _PyArrayNeighIter_IncrCoord(PyArrayNeighIterObject* iter)
 {
     int i, wb;
 
     for(i = iter->nd-1; i >= 0; --i) {
-        wb = iter->_coordinates[i] < iter->_bounds[i][1];
+        wb = iter->base.coordinates[i] < iter->bounds[i][1];
         if (wb) {
-            iter->_coordinates[i] += 1;
+            iter->base.coordinates[i] += 1;
             return 0;
         }
         else {
-            iter->_coordinates[i] = iter->_bounds[i][0];
+            iter->base.coordinates[i] = iter->bounds[i][0];
         }
     }
 
     return 0;
 }
 
-/* 
- * set the dataptr from its current coordinates
- */
-static NPY_INLINE int _PyArrayNeighIter_SetPtr(PyArrayNeighIterObject* iter)
+/* set the dataptr from its current coordinates */
+NPY_INLINE int _PyArrayNeighIter_SetPtr(PyArrayNeighIterObject* iter)
 {
     int i;
     npy_intp offset, bd;
+    PyArrayIterObject *base = (PyArrayIterObject*)iter;
 
-    iter->dataptr = iter->_iter->dataptr;
+    base->dataptr = iter->_internal_iter->dataptr;
 
     for(i = 0; i < iter->nd; ++i) {
         /*
          * Handle cases where neighborhood point is outside the array
          */
-        bd = iter->_coordinates[i] + iter->_iter->coordinates[i];
-        if (bd < 0 || bd > iter->_dims[i]) {
-            iter->dataptr = iter->_zero;
+        bd = base->coordinates[i] + iter->_internal_iter->coordinates[i];
+        if (bd < 0 || bd > iter->dimensions[i]) {
+            base->dataptr = iter->zero;
             return 1;
         }
 
@@ -116,18 +141,17 @@ static NPY_INLINE int _PyArrayNeighIter_SetPtr(PyArrayNeighIterObject* iter)
          * At this point, the neighborhood point is guaranteed to be within the
          * array
          */
-        offset = iter->_coordinates[i] * iter->_strides[i];
-        iter->dataptr += offset;
+        offset = base->coordinates[i] * base->strides[i];
+        base->dataptr += offset;
     }
 
     return 0;
 }
 
-
 /*
  * Advance to the next neighbour
  */
-static NPY_INLINE int PyArrayNeighIter_Next(PyArrayNeighIterObject* iter)
+NPY_INLINE int PyArrayNeighIter_Next(PyArrayNeighIterObject* iter)
 {
     _PyArrayNeighIter_IncrCoord (iter);
     _PyArrayNeighIter_SetPtr(iter);

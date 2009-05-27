@@ -8,6 +8,8 @@ is granted under the SciPy License.
 #define PY_ARRAY_UNIQUE_SYMBOL _scipy_signal_ARRAY_API
 #include <numpy/noprefix.h>
 
+#include "neighiter.h"
+
 #include "sigtools.h"
 #include <setjmp.h>
 
@@ -1337,6 +1339,12 @@ PyMODINIT_FUNC initsigtools(void) {
         PyDict_SetItemString(d,"DIFFERENTIATOR", PyInt_FromLong((long) DIFFERENTIATOR));
         PyDict_SetItemString(d,"HILBERT", PyInt_FromLong((long) HILBERT));
         */
+
+        /* init neighborhood iter type */
+        PyArrayNeighIter_Type.tp_new = PyType_GenericNew;
+        if (PyType_Ready(&PyArrayNeighIter_Type) < 0) {
+                return;
+        }
 
 
 	/* Check for errors */

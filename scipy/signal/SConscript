@@ -11,6 +11,7 @@ src += env.FromCTemplate("correlate_nd.c.src")
 env.NumpyPythonExtension('sigtools', 
                          source = src + ['sigtoolsmodule.c',\
                                    'firfilter.c', \
+                                   'neighiter.c', \
                                    'medianfilter.c'])
 
 env.NumpyPythonExtension('spline', 

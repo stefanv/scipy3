@@ -50,10 +50,37 @@ PyArrayNeighIter_New(PyArrayIterObject *x, const npy_intp *bounds)
     return ret;
 }
 
-#if 0
-void PyArrayNeighIter_Delete(PyArrayNeighIterObject* iter)
+static void neighiter_dealloc(PyArrayNeighIterObject* iter)
 {
-    PyDataMem_FREE(iter->_zero);
-    free(iter);
+    PyDataMem_FREE(iter->zero);
+    Py_DECREF(iter->base.ao);
+    Py_DECREF(iter->_internal_iter);
+    Py_DECREF((PyArrayObject*)iter);
+
+    PyArray_free((PyArrayObject*)iter);
 }
-#endif
+
+PyTypeObject PyArrayNeighIter_Type = {
+    PyObject_HEAD_INIT(NULL)
+    0,                         /*ob_size*/
+    "foo.neigh_internal_iter",          /*tp_name*/
+    sizeof(PyArrayNeighIterObject), /*tp_basicsize*/
+    0,                         /*tp_itemsize*/
+    (destructor)neighiter_dealloc,         /*tp_dealloc*/
+    0,                         /*tp_print*/
+    0,                         /*tp_getattr*/
+    0,                         /*tp_setattr*/
+    0,                         /*tp_compare*/
+    0,                         /*tp_repr*/
+    0,                         /*tp_as_number*/
+    0,                         /*tp_as_sequence*/
+    0,                         /*tp_as_mapping*/
+    0,                         /*tp_hash */
+    0,                         /*tp_call*/
+    0,                         /*tp_str*/
+    0,                         /*tp_getattro*/
+    0,                         /*tp_setattro*/
+    0,                         /*tp_as_buffer*/
+    Py_TPFLAGS_DEFAULT,        /*tp_flags*/
+    0,                         /* tp_doc */
+};

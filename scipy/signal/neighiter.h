@@ -3,13 +3,9 @@
 
 #include <Python.h>
 
-//#define PY_ARRAY_UNIQUE_SYMBOL _scipy_signal_ARRAY_API
-//#define NO_IMPORT_ARRAY
+#define PY_ARRAY_UNIQUE_SYMBOL _scipy_signal_ARRAY_API
+#define NO_IMPORT_ARRAY
 #include <numpy/ndarrayobject.h>
-
-#ifndef NPY_INLINE
-#define NPY_INLINE inline
-#endif
 
 typedef struct {
     /* Keep this as the first item, so that casting a PyArrayNeighIterObject*
@@ -27,51 +23,63 @@ typedef struct {
     char* zero;
 } PyArrayNeighIterObject;
 
-static PyTypeObject PyArrayNeighIter_Type = {
-    PyObject_HEAD_INIT(NULL)
-    0,                         /*ob_size*/
-    "foo.neigh_internal_iter",          /*tp_name*/
-    sizeof(PyArrayNeighIterObject), /*tp_basicsize*/
-    0,                         /*tp_itemsize*/
-    0,                         /*tp_dealloc*/
-    0,                         /*tp_print*/
-    0,                         /*tp_getattr*/
-    0,                         /*tp_setattr*/
-    0,                         /*tp_compare*/
-    0,                         /*tp_repr*/
-    0,                         /*tp_as_number*/
-    0,                         /*tp_as_sequence*/
-    0,                         /*tp_as_mapping*/
-    0,                         /*tp_hash */
-    0,                         /*tp_call*/
-    0,                         /*tp_str*/
-    0,                         /*tp_getattro*/
-    0,                         /*tp_setattro*/
-    0,                         /*tp_as_buffer*/
-    Py_TPFLAGS_DEFAULT,        /*tp_flags*/
-    0,                         /* tp_doc */
-};
-
+PyTypeObject PyArrayNeighIter_Type;
 
 /*
  * Public API
  */
+
+/* 
+ * Main ctor
+ *
+ * bounds is expected to be a (2 * iter->ao->nd) arrays, such as the range
+ * bound[2*i]->bounds[2*i+1] defines the range where to walk for dimension i
+ * (both bounds are included in the walked coordinates). 
+ *
+ * Example:
+ *      PyArrayIterObject *iter, *neigh_iter_base;
+ *      PyArrayNeighIterObject *neigh_iter;
+ *      iter = PyArray_IterNew(x);
+ *       
+ *      // For a 3x3 kernel
+ *      bounds = {-1, 1, -1, 1};
+ *      neigh_iter = PyArrayNeighIter_New(iter, bounds);
+ *      // Hack so that neigh_iter_base points to iter, but giving access to
+ *      // the base properties of iter (PyArrayIterObject is inherited from
+ *      // PyArrayObject)
+ *      neigh_iter_base = (PyArrayIterObject*)iter;
+ *
+ *      for(i = 0; i < iter->size; ++i) {
+ *              for (j = 0; j < neigh_iter_base->size; ++j) {
+ *                      // Walk around the item currently pointed by iter->dataptr
+ *                      PyArrayNeighIter_Next(neigh_iter);
+ *              }
+ *
+ *              // Move to the next point of iter
+ *              PyArrayIter_Next(iter);
+ *              PyArrayNeighIter_Reset(neigh_iter);
+ *      }
+ *
+ * If the coordinates point to a point outside the array, the iterator points
+ * to 0. More elaborate schemes (constants, mirroring, repeat) may be
+ * implemented later.
+ */
 PyArrayNeighIterObject*
 PyArrayNeighIter_New(PyArrayIterObject* iter, const npy_intp *bounds);
 
-NPY_INLINE int PyArrayNeighIter_Reset(PyArrayNeighIterObject* iter);
-NPY_INLINE int PyArrayNeighIter_Next(PyArrayNeighIterObject* iter);
+static NPY_INLINE int PyArrayNeighIter_Reset(PyArrayNeighIterObject* iter);
+static NPY_INLINE int PyArrayNeighIter_Next(PyArrayNeighIterObject* iter);
 
 /*
  * Private API (here for inline)
  */
-NPY_INLINE int _PyArrayNeighIter_IncrCoord(PyArrayNeighIterObject* iter);
-NPY_INLINE int _PyArrayNeighIter_SetPtr(PyArrayNeighIterObject* iter);
+static NPY_INLINE int _PyArrayNeighIter_IncrCoord(PyArrayNeighIterObject* iter);
+static NPY_INLINE int _PyArrayNeighIter_SetPtr(PyArrayNeighIterObject* iter);
 
 /*
  * Inline implementations
  */
-NPY_INLINE int PyArrayNeighIter_Reset(PyArrayNeighIterObject* iter)
+static NPY_INLINE int PyArrayNeighIter_Reset(PyArrayNeighIterObject* iter)
 {
     int i;
 
@@ -100,7 +108,7 @@ NPY_INLINE int PyArrayNeighIter_Reset(PyArrayNeighIterObject* iter)
  * 0,  -1,  0
  *  ....
  */
-NPY_INLINE int _PyArrayNeighIter_IncrCoord(PyArrayNeighIterObject* iter)
+static NPY_INLINE int _PyArrayNeighIter_IncrCoord(PyArrayNeighIterObject* iter)
 {
     int i, wb;
 
@@ -119,7 +127,7 @@ NPY_INLINE int _PyArrayNeighIter_IncrCoord(PyArrayNeighIterObject* iter)
 }
 
 /* set the dataptr from its current coordinates */
-NPY_INLINE int _PyArrayNeighIter_SetPtr(PyArrayNeighIterObject* iter)
+static NPY_INLINE int _PyArrayNeighIter_SetPtr(PyArrayNeighIterObject* iter)
 {
     int i;
     npy_intp offset, bd;
@@ -151,7 +159,7 @@ NPY_INLINE int _PyArrayNeighIter_SetPtr(PyArrayNeighIterObject* iter)
 /*
  * Advance to the next neighbour
  */
-NPY_INLINE int PyArrayNeighIter_Next(PyArrayNeighIterObject* iter)
+static NPY_INLINE int PyArrayNeighIter_Next(PyArrayNeighIterObject* iter)
 {
     _PyArrayNeighIter_IncrCoord (iter);
     _PyArrayNeighIter_SetPtr(iter);

@@ -6,6 +6,39 @@
 
 #include "neighiter.h"
 
+/* This reproduces PyArray_IterNew (except for the allocation part) */
+static PyObject *
+array_iter_init(PyArrayIterObject *it, PyObject *obj)
+{
+    int i, nd;
+    PyArrayObject *ao = (PyArrayObject *)obj;
+
+    nd = ao->nd;
+    PyArray_UpdateFlags(ao, NPY_CONTIGUOUS);
+    if (PyArray_ISCONTIGUOUS(ao)) {
+        it->contiguous = 1;
+    }
+    else {
+        it->contiguous = 0;
+    }
+    Py_INCREF(ao);
+    it->ao = ao;
+    it->size = PyArray_SIZE(ao);
+    it->nd_m1 = nd - 1;
+    it->factors[nd-1] = 1;
+    for (i = 0; i < nd; i++) {
+        it->dims_m1[i] = ao->dimensions[i] - 1;
+        it->strides[i] = ao->strides[i];
+        it->backstrides[i] = it->strides[i] * it->dims_m1[i];
+        if (i > 0) {
+            it->factors[nd-i-1] = it->factors[nd-i] * ao->dimensions[nd-i];
+        }
+    }
+    PyArray_ITER_RESET(it);
+
+    return (PyObject *)it;
+}
+
 PyArrayNeighIterObject*
 PyArrayNeighIter_New(PyArrayIterObject *x, const npy_intp *bounds)
 {
@@ -18,11 +51,10 @@ PyArrayNeighIter_New(PyArrayIterObject *x, const npy_intp *bounds)
         return NULL;
     }
 
+    array_iter_init(ret, (PyObject*)x->ao);
     Py_INCREF(x);
     ret->_internal_iter = x;
 
-    Py_INCREF(x->ao);
-    ret->base.ao = x->ao;
     ret->nd = x->ao->nd;
 
     /* Compute the neighborhood size and copy the shape */
@@ -34,7 +66,6 @@ PyArrayNeighIter_New(PyArrayIterObject *x, const npy_intp *bounds)
     }
 
     for(i = 0; i < ret->nd; ++i) {
-        ret->base.strides[i] = x->ao->strides[i];
         ret->dimensions[i] = x->ao->dimensions[i];
     }
     ret->zero = PyArray_Zero(x->ao);
@@ -53,9 +84,8 @@ PyArrayNeighIter_New(PyArrayIterObject *x, const npy_intp *bounds)
 static void neighiter_dealloc(PyArrayNeighIterObject* iter)
 {
     PyDataMem_FREE(iter->zero);
-    Py_DECREF(iter->base.ao);
     Py_DECREF(iter->_internal_iter);
-    Py_DECREF((PyArrayObject*)iter);
+    Py_DECREF(iter->base.ao);
 
     PyArray_free((PyArrayObject*)iter);
 }

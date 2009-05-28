@@ -340,6 +340,7 @@ static int _correlate_nd_imp(PyArrayIterObject* itx, PyArrayIterObject *ity,
            the cost is numerical operations, not iterators moving in this case ? */
         case PyArray_OBJECT:
             _imp_correlate_nd_object(curx, curneighx, ity, itz);
+            break;
         default:
             PyErr_SetString(PyExc_ValueError, "Unsupported type");
             goto clean_curneighx;

@@ -112,19 +112,33 @@ static NPY_INLINE int _PyArrayNeighIter_IncrCoord(PyArrayNeighIterObject* iter)
 {
     int i, wb;
 
+#define _update_coord_iter(c) \
+    wb = iter->base.coordinates[c] < iter->bounds[c][1]; \
+    if (wb) { \
+        iter->base.coordinates[c] += 1; \
+        return 0; \
+    } \
+    else { \
+        iter->base.coordinates[c] = iter->bounds[c][0]; \
+    }
+
     for(i = iter->nd-1; i >= 0; --i) {
-        wb = iter->base.coordinates[i] < iter->bounds[i][1];
-        if (wb) {
-            iter->base.coordinates[i] += 1;
-            return 0;
-        }
-        else {
-            iter->base.coordinates[i] = iter->bounds[i][0];
-        }
+        _update_coord_iter(i)
     }
 
     return 0;
 }
+
+static NPY_INLINE int _PyArrayNeighIter_IncrCoord2D(PyArrayNeighIterObject* iter)
+{
+    int wb;
+
+    _update_coord_iter(1)
+    _update_coord_iter(0)
+
+    return 0;
+}
+#undef _update_coord_iter
 
 /* set the dataptr from its current coordinates */
 static NPY_INLINE int _PyArrayNeighIter_SetPtr(PyArrayNeighIterObject* iter)
@@ -135,30 +149,47 @@ static NPY_INLINE int _PyArrayNeighIter_SetPtr(PyArrayNeighIterObject* iter)
 
     base->dataptr = iter->_internal_iter->dataptr;
 
-    for(i = 0; i < iter->nd; ++i) {
-        /*
-         * Handle cases where neighborhood point is outside the array
-         */
-        bd = base->coordinates[i] + iter->_internal_iter->coordinates[i];
-        if (bd < 0 || bd > iter->dimensions[i]) {
-            base->dataptr = iter->zero;
-            return 1;
-        }
+#define _inc_set_ptr(c) \
+    bd = base->coordinates[c] + iter->_internal_iter->coordinates[c]; \
+    if (bd < 0 || bd > iter->dimensions[c]) { \
+        base->dataptr = iter->zero; \
+        return 1; \
+    } \
+    offset = base->coordinates[c] * base->strides[c]; \
+    base->dataptr += offset;
 
-        /*
-         * At this point, the neighborhood point is guaranteed to be within the
-         * array
-         */
-        offset = base->coordinates[i] * base->strides[i];
-        base->dataptr += offset;
+    for(i = 0; i < iter->nd; ++i) {
+        _inc_set_ptr(i)
     }
 
     return 0;
 }
 
+static NPY_INLINE int _PyArrayNeighIter_SetPtr2D(PyArrayNeighIterObject* iter)
+{
+    npy_intp offset, bd;
+    PyArrayIterObject *base = (PyArrayIterObject*)iter;
+
+    base->dataptr = iter->_internal_iter->dataptr;
+
+    _inc_set_ptr(0)
+    _inc_set_ptr(1)
+
+    return 0;
+}
+#undef _inc_set_ptr
+
 /*
  * Advance to the next neighbour
  */
+static NPY_INLINE int PyArrayNeighIter_Next2D(PyArrayNeighIterObject* iter)
+{
+    _PyArrayNeighIter_IncrCoord2D(iter);
+    _PyArrayNeighIter_SetPtr2D(iter);
+
+    return 0;
+}
+
 static NPY_INLINE int PyArrayNeighIter_Next(PyArrayNeighIterObject* iter)
 {
     _PyArrayNeighIter_IncrCoord (iter);
@@ -166,5 +197,4 @@ static NPY_INLINE int PyArrayNeighIter_Next(PyArrayNeighIterObject* iter)
 
     return 0;
 }
-
 #endif

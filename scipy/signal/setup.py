@@ -10,7 +10,7 @@ def configuration(parent_package='',top_path=None):
     config.add_extension('sigtools',
                          sources=['sigtoolsmodule.c',
                                   'firfilter.c','medianfilter.c', 'lfilter.c.src',
-                                  'correlate_nd.c.src'],
+                                  'correlate_nd.c.src', 'neighiter.c'],
                          depends = ['sigtools.h'],
                          include_dirs=['.']
     )

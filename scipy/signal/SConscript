@@ -16,3 +16,5 @@ env.NumpyPythonExtension('spline',
                          source = ['splinemodule.c', 'S_bspline_util.c', 
                                    'D_bspline_util.c', 'C_bspline_util.c', 
                                    'Z_bspline_util.c','bspline_util.c'])
+
+env.NumpyPythonExtension('_cacorr', source=['src/_cacorr.c'])

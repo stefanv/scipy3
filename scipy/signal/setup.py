@@ -13,6 +13,8 @@ def configuration(parent_package='',top_path=None):
                          depends = ['sigtools.h']
     )
 
+    config.add_extension('_cacorr', sources=['src/_cacorr.c'])
+
     config.add_extension('spline',
         sources = ['splinemodule.c','S_bspline_util.c','D_bspline_util.c',
                    'C_bspline_util.c','Z_bspline_util.c','bspline_util.c'],

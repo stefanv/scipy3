@@ -1320,7 +1320,8 @@ def get_window(window,Nx,fftbins=1):
                    parzen, bohman, blackmanharris, nuttall, barthann,
                    kaiser (needs beta), gaussian (needs std),
                    general_gaussian (needs power, width),
-                   slepian (needs width)
+                   slepian (needs width), 
+                   chebwin (needs size, attentuation, symmetric)
 
     If the window requires no parameters, then it can be a string.
     If the window requires parameters, the window argument should be a tuple
@@ -1336,13 +1337,14 @@ def get_window(window,Nx,fftbins=1):
     except (TypeError, ValueError):
         args = ()
         if isinstance(window, types.TupleType):
+            print tuple
             winstr = window[0]
             if len(window) > 1:
                 args = window[1:]
         elif isinstance(window, types.StringType):
             if window in ['kaiser', 'ksr', 'gaussian', 'gauss', 'gss',
                         'general gaussian', 'general_gaussian',
-                        'general gauss', 'general_gauss', 'ggs']:
+                        'general gauss', 'general_gauss', 'ggs','chebwin','cheb']:
                 raise ValueError, "That window needs a parameter -- pass a tuple"
             else:
                 winstr = window
@@ -1380,6 +1382,8 @@ def get_window(window,Nx,fftbins=1):
             winfunc = boxcar
         elif winstr in ['slepian', 'slep', 'optimal', 'dss']:
             winfunc = slepian
+        elif winstr in ['chebwin','cheb']:
+        	winfunc = chebwin
         else:
             raise ValueError, "Unknown window type."
 

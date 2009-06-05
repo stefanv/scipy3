@@ -12,54 +12,54 @@ import numpy as np
 
 class TestConvolve(TestCase):
     def test_basic(self):
-        a = [3,4,5,6,5,4]
-        b = [1,2,3]
+        a = [3, 4, 5, 6, 5, 4]
+        b = [1, 2, 3]
         c = signal.convolve(a,b)
-        assert_array_equal(c,array([3,10,22,28,32,32,23,12]))
+        assert_array_equal(c,array([3, 10, 22, 28, 32, 32, 23, 12]))
 
     def test_zero_order(self):
         a = 1289
         b = 4567
-        c = signal.convolve(a,b)
-        assert_array_equal(c,a*b)
+        c = signal.convolve(a, b)
+        assert_array_equal(c, a*b)
 
     def test_2d_arrays(self):
-        a = [[1,2,3],[3,4,5]]
-        b = [[2,3,4],[4,5,6]]
-        c = signal.convolve(a,b)
-        d = array(  [[2 ,7 ,16,17,12],\
-                     [10,30,62,58,38],\
-                     [12,31,58,49,30]])
-        e = signal.convolve2d(a,b)
-        assert_array_equal(c,d)
-        assert_array_equal(e,d)
+        a = [[1, 2, 3],[3, 4, 5]]
+        b = [[2, 3, 4],[4, 5, 6]]
+        c = signal.convolve(a, b)
+        d = array(  [[2,   7, 16, 17, 12],\
+                     [10, 30, 62, 58, 38],\
+                     [12, 31, 58, 49, 30]])
+        e = signal.convolve2d(a, b)
+        assert_array_equal(c, d)
+        assert_array_equal(e, d)
 
 
     def test_same_mode(self):
-        a = [1,2,3,3,1,2]
-        b = [1,4,3,4,5,6,7,4,3,2,1,1,3]
-        c = signal.convolve(a,b,'same')
-        d = array([14,25,35,43,57,61,63,57,45,36,25,20,17])
-        assert_array_equal(c,d)
+        a = [1, 2, 3, 3, 1, 2]
+        b = [1, 4, 3, 4, 5, 6, 7, 4, 3, 2, 1, 1, 3]
+        c = signal.convolve(a, b, 'same')
+        d = array([14, 25, 35, 43, 57, 61, 63, 57, 45, 36, 25, 20, 17])
+        assert_array_equal(c, d)
         #for the 2d function
-        e = [[1,2,3],[3,4,5]]
-        f = [[2,3,4,5,6,7,8],[4,5,6,7,8,9,10]]
-        g = signal.convolve2d(e,f,'same')
-        h = array([[ 7,16,22,28, 34, 40, 37],\
-                   [30,62,80,98,116,134,114]])
-        assert_array_equal(g,h)
+        e = [[1, 2, 3],[3, 4, 5]]
+        f = [[2, 3, 4, 5, 6, 7, 8],[4, 5, 6, 7, 8, 9, 10]]
+        g = signal.convolve2d(e, f, 'same')
+        h = array([[ 7, 16, 22, 28,  34,  40,  37],\
+                   [30, 62, 80, 98, 116, 134, 114]])
+        assert_array_equal(g, h)
 
     def test_valid_mode(self):
-        a = [1,2,3,6,5,3]
-        b = [2,3,4,5,3,4,2,2,1]
-        c = signal.convolve(a,b,'valid')
-        assert_array_equal(c,array([70,78,73,65]))
+        a = [1, 2, 3, 6, 5, 3]
+        b = [2, 3, 4, 5, 3, 4, 2, 2, 1]
+        c = signal.convolve(a, b, 'valid')
+        assert_array_equal(c, array([70, 78, 73, 65]))
         #2d function
-        e = [[1,2,3],[3,4,5]]
-        f = [[2,3,4,5,6,7,8],[4,5,6,7,8,9,10]]
-        g = signal.convolve2d(e,f,'valid')
-        h = array([[62,80,98,116,134]])
-        assert_array_equal(g,h)
+        e = [[1, 2, 3],[3, 4, 5]]
+        f = [[2, 3, 4, 5, 6, 7, 8],[4, 5, 6, 7, 8, 9, 10]]
+        g = signal.convolve2d(e, f, 'valid')
+        h = array([[62, 80, 98, 116, 134]])
+        assert_array_equal(g, h)
         
     def test_fillvalue(self):
         a = [[1,2,3],[3,4,5]]
@@ -487,5 +487,73 @@ class TestDecimate:
         x = np.arange(6)
         assert_array_equal(signal.decimate(x, 2, n=1).round(), x[::2])
 
+class TestGet_window:
+    def test_blackman(self):
+        a = signal.get_window('blackman', 11, 1)
+        assert_array_almost_equal(a, a[slice(None, None, -1)])
+        b = [-1.38778e-17, 4.0213e-2, .20077, .50979, .84923,1]
+        assert_array_almost_equal(a[:6], b, 4)
+        
+    def test_boxcar(self):
+        a = signal.get_window('boxcar', 11, 1)
+        assert_array_equal(a, a[slice(None,None,-1)])
+        b = np.ones(11)
+        assert_array_equal(a, b)
+        
+    def test_triang(self):
+        a = signal.get_window('triang', 11, 1)
+        assert_array_almost_equal(a, a[slice(None, None, -1)])
+        b = [0.166667, 0.333333, 0.5, 0.666667, 0.833333,1]
+        assert_array_almost_equal(a[:6], b, 5)
+        
+    def test_hamming(self):
+        a = signal.get_window('hamming',11,1)
+        assert_array_almost_equal(a, a[slice(None, None, -1)])
+        b = [0.08, 0.16785, 0.39785, 0.68215, 0.91215,1]
+        assert_array_almost_equal(a[:6], b, 5)
+        
+    def test_hanning(self):
+        a = signal.get_window('hanning',11,1)
+        assert_array_almost_equal(a, a[slice(None, None, -1)])
+        b = [0, 0.0954915, 0.3454915, 0.6545085, 0.9045085, 1]
+        assert_array_almost_equal(a[:6], b, 5)
+        
+    def test_bartlett(self):
+        a = signal.get_window('bartlett',11,1)
+        assert_array_almost_equal(a, a[slice(None, None, -1)])
+        b = [0, 0.2, 0.4, 0.6, 0.8, 1]
+        assert_array_almost_equal(a[:6], b, 5)
+        
+    def test_parzen(self):
+        a = signal.get_window('hamming',11,1)
+        assert_array_almost_equal(a, a[slice(None, None, -1)])
+        b = [0.08, 0.16785, 0.39785, 0.68215, 0.91215,1]
+        assert_array_almost_equal(a[:6], b, 5)
+    
+    def test_bohman(self):
+        a = signal.get_window('bohman',11,1)
+        assert_array_almost_equal(a, a[slice(None, None, -1)])
+        b = [0, 0.025294, 0.17912, 0.48814, 0.83431, 1]
+        assert_array_almost_equal(a[:6], b, 5)
+        
+    def test_blackmanharris(self):
+        a = signal.get_window('blackmanharris',11,1)
+        assert_array_almost_equal(a, a[slice(None, None, -1)])
+        b = [6e-5, 1.0982e-2, 1.0301e-1, 3.8589e-1,7.9383e-1 ,1]
+        assert_array_almost_equal(a[:6], b, 5)
+        
+    def test_nuttall(self):
+        a = signal.get_window('nuttall',11,1)
+        assert_array_almost_equal(a, a[slice(None, None, -1)])
+        b = [3.628e-4, 1.3329e-2, 1.1052e-1, 3.9563e-1, 7.9826e-1,1]
+        assert_array_almost_equal(a[:6], b, 5)
+        
+    def test_barthann(self):
+        a = signal.get_window('barthann',11,1);
+        assert_array_almost_equal(a, a[slice(None, None, -1)])
+        b = [0, 0.12057, 0.35857, 0.64143, 0.87943, 1]
+        assert_array_almost_equal(a[:6], b, 5)
+    
+        
 if __name__ == "__main__":
     run_module_suite()

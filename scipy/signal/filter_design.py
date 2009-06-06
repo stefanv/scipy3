@@ -1584,3 +1584,59 @@ def firwin(N, cutoff, width=None, window='hamming'):
     return h / numpy.sum(h,axis=0)
 
 warnings.simplefilter("always", BadCoefficients)
+
+def fir2(N, f, a, ntp=512, window='hamming', nyq=1.):
+    """FIR Filter Design using inverse fft method.
+
+    Parameters
+    ----------
+      N      -- order of filter (number of taps)
+      f      -- frequency sampling points. Typically 0.0 to 1.0 with
+                1.0 being nyquist. Nyquest can be redefined via nyq
+      a      -- amplitude at frequency sampling points
+      ntp    -- FFT size - Default is 512 points
+      window -- Window function to use. Default is Hamming
+      nyq    -- Frequency for nyquist. Default is 1.0
+    
+    Returns
+    -------
+      out    -- 
+    """
+    from signaltools import get_window##TODO: get rid of these, no imports in functions!
+    from scipy.fftpack import ifft
+
+    # Handle input checking
+    nyq = float(nyq)
+    
+    if (len(f) != len(a)):
+        raise(ValueError,"f and a must be the same length")
+        ##print 'f and a must be of same length!'
+        return numpy.array([])
+
+    # Create window to apply to final filter
+    wind = get_window(window,N,fftbins=0)##fftbins?  that's the symmetric window option
+    ##AND IT'S NOT USED ANYWHERE ELSE.
+    # Create a series of equally spaced frequencies and linearly interpolate
+    #   amplitude from input 'a'. This will the frequency spaced used for the
+    #   ifft
+    x = numpy.linspace(0.0, nyq, ntp+1)
+    fx = numpy.array(numpy.interp(x, f, a))
+
+    # This uses the Fourier Time Shift to properly align the coefficients in post-ifft
+    #   array. See http://www.engineering.usu.edu/classes/ece/3640/lecture5/node6.html
+    #   and check under Time Shift Property for description of Fourier Time Shift
+    shift = exp(-(N-1)/2.*1.j*pi*numpy.arange(len(fx))/(len(fx)-1))
+    fx2 = fx * shift
+
+    # Up until this point, we've been working 0 <= theta <= pi. Must fill in pi < theta < 2pi.
+    #  to allow the ifft to work properly.     
+    fx3 = fx2 + conjugate(fx2[slice(None, None, -1)])
+    #fx2 += conjugate(fx2[::-1][1:len(fx2)-1])
+
+    # Perform ifft and take real portion
+    out = real(ifft(fx3))
+    #print out
+    # Multiply by window and return 
+    out = out[0:N]*wind
+    return out
+

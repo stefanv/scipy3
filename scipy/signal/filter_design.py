@@ -7,10 +7,11 @@ import warnings
 import numpy
 from numpy import atleast_1d, poly, polyval, roots, real, asarray, allclose, \
     resize, pi, absolute, logspace, r_, sqrt, tan, log10, arctan, arcsinh, \
-    cos, exp, cosh, arccosh, ceil, conjugate, zeros, sinh
+    cos, exp, cosh, arccosh, ceil, conjugate, zeros, sinh,concatenate
 from numpy import mintypecode
 from scipy import special, optimize
 from scipy.misc import comb
+
 
 class BadCoefficients(UserWarning):
     pass
@@ -1602,41 +1603,33 @@ def fir2(N, f, a, ntp=512, window='hamming', nyq=1.):
     -------
       out    -- 
     """
-    from signaltools import get_window##TODO: get rid of these, no imports in functions!
+    
+    from signaltools import get_window
     from scipy.fftpack import ifft
 
-    # Handle input checking
-    nyq = float(nyq)
+    N += 1
+    f = asarray(f)
+    a = asarray(a)
     
-    if (len(f) != len(a)):
-        raise(ValueError,"f and a must be the same length")
-        ##print 'f and a must be of same length!'
-        return numpy.array([])
-
-    # Create window to apply to final filter
-    wind = get_window(window,N,fftbins=0)##fftbins?  that's the symmetric window option
-    ##AND IT'S NOT USED ANYWHERE ELSE.
-    # Create a series of equally spaced frequencies and linearly interpolate
-    #   amplitude from input 'a'. This will the frequency spaced used for the
-    #   ifft
+    if (f.shape != a.shape):
+        raise ValueError, "f and a must be the same length"
+    try:
+        nyq = float(nyq)
+    except:
+        raise ValueError, "nyquist frequency must be an number"
+        
+    
+    wind = get_window(window,N,0)
     x = numpy.linspace(0.0, nyq, ntp+1)
     fx = numpy.array(numpy.interp(x, f, a))
-
-    # This uses the Fourier Time Shift to properly align the coefficients in post-ifft
-    #   array. See http://www.engineering.usu.edu/classes/ece/3640/lecture5/node6.html
-    #   and check under Time Shift Property for description of Fourier Time Shift
+    #fourier time shift
     shift = exp(-(N-1)/2.*1.j*pi*numpy.arange(len(fx))/(len(fx)-1))
-    fx2 = fx * shift
-
-    # Up until this point, we've been working 0 <= theta <= pi. Must fill in pi < theta < 2pi.
-    #  to allow the ifft to work properly.     
-    fx3 = fx2 + conjugate(fx2[slice(None, None, -1)])
-    #fx2 += conjugate(fx2[::-1][1:len(fx2)-1])
-
-    # Perform ifft and take real portion
-    out = real(ifft(fx3))
+    fx = fx*shift
+    #fill in pi<theta<2pi for ifft
+    fx = concatenate((fx, conjugate(fx[0:len(fx1)-1][::-1])),0)
+    
+    out = real(ifft(fx))
     #print out
-    # Multiply by window and return 
-    out = out[0:N]*wind
-    return out
+
+    return out[0:N]*wind
 

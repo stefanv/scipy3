@@ -1622,3 +1622,27 @@ def decimate(x, q, n=None, ftype='iir', axis=-1):
     sl = [None]*y.ndim
     sl[axis] = slice(None, None, q)
     return y[sl]
+
+def upfirdn(x,filt,up=1,dn=1):
+    '''upfirdown upsamples applies a filter and downsamples
+    1-d for now and not complete
+    Parameters
+    ----------
+    x   signal input
+    flt filter
+    
+    Output
+    ------ 
+    out resampled and filtered data
+    '''
+    x = asarray(x)
+    up = int(up)
+    dn = int(dn)
+    
+    xup = np.zeros(x.shape[0]*up)
+    xup[::up] = x
+    del x
+    #todo: add code for applying a filter
+    xdn = xup[::dn]
+    return xdn
+

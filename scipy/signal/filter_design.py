@@ -55,6 +55,8 @@ def freqs(b,a,worN=None,plot=None):
         of the response curve (determined by pole-zero locations).  If a single
         integer, the compute at that many frequencies.  Otherwise, compute the
         response at frequencies given in worN.
+    plot : outputs a plot of w and h.  this requires matplotlib and will error 
+        otherwise.
 
     Returns
     -------
@@ -103,7 +105,8 @@ def freqz(b, a=1, worN=None, whole=0, plot=None):
     whole : {0,1}, optional
         Normally, frequencies are computed from 0 to pi (upper-half of
         unit-circle.  If whole is non-zero compute frequencies from 0 to 2*pi.
-
+    plot : outputs a plot of w and h.  this requires matplotlib and will error 
+        otherwise.
     Returns
     -------
     w : ndarray

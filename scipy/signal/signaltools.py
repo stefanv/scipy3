@@ -1623,7 +1623,7 @@ def decimate(x, q, n=None, ftype='iir', axis=-1):
     sl[axis] = slice(None, None, q)
     return y[sl]
 
-def upfirdn(x,filt,up=1,dn=1):
+def upfirdn(x,kernel,up=1,dn=1):
     '''upfirdown upsamples applies a filter and downsamples
     1-d for now and not complete
     Parameters
@@ -1640,9 +1640,11 @@ def upfirdn(x,filt,up=1,dn=1):
     dn = int(dn)
     
     xup = np.zeros(x.shape[0]*up)
-    xup[::up] = x
+    xup[::up] = x#should this be interpolated?
     del x
-    #todo: add code for applying a filter
+    xup = convolve(xup,kernel)
+    #does it matter than convolve may flip x and kernel?
+    
     xdn = xup[::dn]
     return xdn
 

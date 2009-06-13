@@ -44,28 +44,24 @@ PyTypeObject PyArrayNeighIter_Type;
  * Public API
  */
 
-/* 
+/*
  * Main ctor
  *
  * bounds is expected to be a (2 * iter->ao->nd) arrays, such as the range
  * bound[2*i]->bounds[2*i+1] defines the range where to walk for dimension i
- * (both bounds are included in the walked coordinates). 
+ * (both bounds are included in the walked coordinates).
  *
  * Example:
- *      PyArrayIterObject *iter, *neigh_iter_base;
+ *      PyArrayIterObject *iter;
  *      PyArrayNeighIterObject *neigh_iter;
  *      iter = PyArray_IterNew(x);
- *       
+ *
  *      // For a 3x3 kernel
  *      bounds = {-1, 1, -1, 1};
  *      neigh_iter = PyArrayNeighIter_New(iter, bounds);
- *      // Hack so that neigh_iter_base points to iter, but giving access to
- *      // the base properties of iter (PyArrayIterObject is inherited from
- *      // PyArrayObject)
- *      neigh_iter_base = (PyArrayIterObject*)iter;
  *
  *      for(i = 0; i < iter->size; ++i) {
- *              for (j = 0; j < neigh_iter_base->size; ++j) {
+ *              for (j = 0; j < neigh_iter->size; ++j) {
  *                      // Walk around the item currently pointed by iter->dataptr
  *                      PyArrayNeighIter_Next(neigh_iter);
  *              }

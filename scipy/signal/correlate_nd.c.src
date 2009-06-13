@@ -125,14 +125,12 @@ static int _imp_correlate_nd_@fsuf@@fsuf2@(PyArrayNeighIterObject *curx,
 {
     npy_intp i, j;
     @type@ acc;
-    PyArrayIterObject *curneighxbase = (PyArrayIterObject*)curneighx;
-    PyArrayIterObject *curxbase = (PyArrayIterObject*)curx;
 
-    for(i = 0; i < curxbase->size; ++i) {
+    for(i = 0; i < curx->size; ++i) {
         acc = 0;
         PyArrayNeighIter_Reset(curneighx);
-        for(j = 0; j < curneighxbase->size; ++j) {
-            acc += *((@type@*)(curneighxbase->dataptr)) * *((@type@*)(ity->dataptr));
+        for(j = 0; j < curneighx->size; ++j) {
+            acc += *((@type@*)(curneighx->dataptr)) * *((@type@*)(ity->dataptr));
 
             PyArrayNeighIter_Next@func@(curneighx);
             PyArray_ITER_NEXT(ity);
@@ -167,15 +165,13 @@ static int _imp_correlate_nd_c@fsuf@@fsuf2@(PyArrayNeighIterObject *curx,
     int i, j;
     @type@ racc, iacc;
     @type@ *ptr1, *ptr2;
-    PyArrayIterObject *curneighxbase = (PyArrayIterObject*)curneighx;
-    PyArrayIterObject *curxbase = (PyArrayIterObject*)curx;
 
-    for(i = 0; i < curxbase->size; ++i) {
+    for(i = 0; i < curx->size; ++i) {
         racc = 0;
         iacc = 0;
         PyArrayNeighIter_Reset(curneighx);
-        for(j = 0; j < curneighxbase->size; ++j) {
-            ptr1 = ((@type@*)(curneighxbase->dataptr));
+        for(j = 0; j < curneighx->size; ++j) {
+            ptr1 = ((@type@*)(curneighx->dataptr));
             ptr2 = ((@type@*)(ity->dataptr));
             racc += ptr1[0] * ptr2[0] - ptr1[1] * ptr2[1];
             iacc += ptr1[1] * ptr2[0] + ptr1[0] * ptr2[1];
@@ -205,23 +201,21 @@ static int _imp_correlate_nd_object(PyArrayNeighIterObject *curx,
     int i, j;
     PyObject *tmp, *tmp2;
     char *zero;
-    PyArrayIterObject *curneighxbase = (PyArrayIterObject*)curneighx;
-    PyArrayIterObject *curxbase = (PyArrayIterObject*)curx;
-    PyArray_CopySwapFunc *copyswap = curxbase->ao->descr->f->copyswap;
+    PyArray_CopySwapFunc *copyswap = curx->ao->descr->f->copyswap;
 
-    zero = PyArray_Zero(curxbase->ao);
+    zero = PyArray_Zero(curx->ao);
 
-    for(i = 0; i < curxbase->size; ++i) {
+    for(i = 0; i < curx->size; ++i) {
         PyArrayNeighIter_Reset(curneighx);
         copyswap(itz->dataptr, zero, 0, NULL);
 
-        for(j = 0; j < curneighxbase->size; ++j) {
+        for(j = 0; j < curneighx->size; ++j) {
             /*
              * compute tmp2 = acc + x * y. Not all objects supporting the
              * number protocol support inplace operations, so we do it the most
              * straightfoward way.
              */
-            tmp = PyNumber_Multiply(*((PyObject**)curneighxbase->dataptr),
+            tmp = PyNumber_Multiply(*((PyObject**)curneighx->dataptr),
                                     *((PyObject**)ity->dataptr));
             tmp2 = PyNumber_Add(*((PyObject**)itz->dataptr), tmp);
             Py_DECREF(tmp);
@@ -250,7 +244,6 @@ static int _correlate_nd_imp(PyArrayIterObject* itx, PyArrayIterObject *ity,
         PyArrayIterObject *itz, int typenum, int mode)
 {
     PyArrayNeighIterObject *curneighx, *curx;
-    PyArrayIterObject *curxbase;
     npy_intp i, nz, nx;
     npy_intp bounds[NPY_MAXDIMS*2];
 
@@ -297,7 +290,6 @@ static int _correlate_nd_imp(PyArrayIterObject* itx, PyArrayIterObject *ity,
         PyErr_SetString(PyExc_SystemError, "Could not create curx ?");
         return -1;
     }
-    curxbase = (PyArrayIterObject*)curx;
 
     /* Compute boundaries for the neighborhood iterator: the neighborhood for x
        should have the same dimensions as y */
@@ -306,7 +298,7 @@ static int _correlate_nd_imp(PyArrayIterObject* itx, PyArrayIterObject *ity,
         bounds[2*i+1] = 0;
     }
 
-    curneighx = PyArrayNeighIter_New(curxbase, bounds);
+    curneighx = PyArrayNeighIter_New((PyArrayIterObject*)curx, bounds);
     if (curneighx == NULL) {
         goto clean_curx;
     }

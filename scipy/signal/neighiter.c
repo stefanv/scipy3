@@ -58,11 +58,11 @@ PyArrayNeighIter_New(PyArrayIterObject *x, const npy_intp *bounds)
     ret->nd = x->ao->nd;
 
     /* Compute the neighborhood size and copy the shape */
-    ret->base.size = 1;
+    ret->size = 1;
     for(i = 0; i < ret->nd; ++i) {
         ret->bounds[i][0] = bounds[2 * i];
         ret->bounds[i][1] = bounds[2 * i + 1];
-        ret->base.size *= (bounds[2*i+1] - bounds[2*i]) + 1;
+        ret->size *= (bounds[2*i+1] - bounds[2*i]) + 1;
     }
 
     for(i = 0; i < ret->nd; ++i) {
@@ -85,7 +85,7 @@ static void neighiter_dealloc(PyArrayNeighIterObject* iter)
 {
     PyDataMem_FREE(iter->zero);
     Py_DECREF(iter->_internal_iter);
-    Py_DECREF(iter->base.ao);
+    Py_DECREF(iter->ao);
 
     PyArray_free((PyArrayObject*)iter);
 }

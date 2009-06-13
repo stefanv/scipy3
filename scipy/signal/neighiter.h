@@ -8,18 +8,33 @@
 #include <numpy/ndarrayobject.h>
 
 typedef struct {
-    /* Keep this as the first item, so that casting a PyArrayNeighIterObject*
-     * to a PyArrayIterObject* works */
-    PyArrayIterObject base;
+    PyObject_HEAD
 
+    /* PyArrayIterObject part: keep this in this exact order */
+    int               nd_m1;            /* number of dimensions - 1 */
+    npy_intp          index, size;
+    npy_intp          coordinates[NPY_MAXDIMS];/* N-dimensional loop */
+    npy_intp          dims_m1[NPY_MAXDIMS];    /* ao->dimensions - 1 */
+    npy_intp          strides[NPY_MAXDIMS];    /* ao->strides or fake */
+    npy_intp          backstrides[NPY_MAXDIMS];/* how far to jump back */
+    npy_intp          factors[NPY_MAXDIMS];     /* shape factors */
+    PyArrayObject     *ao;
+    char              *dataptr;        /* pointer to current item*/
+    npy_bool          contiguous;
+
+    /* New members */
     npy_intp nd;
 
+    /* Dimensions is the dimension of the array */
     npy_intp dimensions[NPY_MAXDIMS];
+    /* Bounds of the neighborhood to iterate over */
     npy_intp bounds[NPY_MAXDIMS][2];
 
     /* Neighborhood points coordinates are computed relatively to the point pointed
      * by _internal_iter */
     PyArrayIterObject* _internal_iter;
+    /* To keep a reference to the zero representation correponding to the dtype
+     * of the array we iterate over */
     char* zero;
 } PyArrayNeighIterObject;
 
@@ -84,7 +99,7 @@ static NPY_INLINE int PyArrayNeighIter_Reset(PyArrayNeighIterObject* iter)
     int i;
 
     for(i = 0; i < iter->nd; ++i) {
-        iter->base.coordinates[i] = iter->bounds[i][0];
+        iter->coordinates[i] = iter->bounds[i][0];
     }
     _PyArrayNeighIter_SetPtr(iter);
 
@@ -113,13 +128,13 @@ static NPY_INLINE int _PyArrayNeighIter_IncrCoord(PyArrayNeighIterObject* iter)
     int i, wb;
 
 #define _update_coord_iter(c) \
-    wb = iter->base.coordinates[c] < iter->bounds[c][1]; \
+    wb = iter->coordinates[c] < iter->bounds[c][1]; \
     if (wb) { \
-        iter->base.coordinates[c] += 1; \
+        iter->coordinates[c] += 1; \
         return 0; \
     } \
     else { \
-        iter->base.coordinates[c] = iter->bounds[c][0]; \
+        iter->coordinates[c] = iter->bounds[c][0]; \
     }
 
     for(i = iter->nd-1; i >= 0; --i) {
@@ -145,18 +160,17 @@ static NPY_INLINE int _PyArrayNeighIter_SetPtr(PyArrayNeighIterObject* iter)
 {
     int i;
     npy_intp offset, bd;
-    PyArrayIterObject *base = (PyArrayIterObject*)iter;
 
-    base->dataptr = iter->_internal_iter->dataptr;
+    iter->dataptr = iter->_internal_iter->dataptr;
 
 #define _inc_set_ptr(c) \
-    bd = base->coordinates[c] + iter->_internal_iter->coordinates[c]; \
+    bd = iter->coordinates[c] + iter->_internal_iter->coordinates[c]; \
     if (bd < 0 || bd > iter->dimensions[c]) { \
-        base->dataptr = iter->zero; \
+        iter->dataptr = iter->zero; \
         return 1; \
     } \
-    offset = base->coordinates[c] * base->strides[c]; \
-    base->dataptr += offset;
+    offset = iter->coordinates[c] * iter->strides[c]; \
+    iter->dataptr += offset;
 
     for(i = 0; i < iter->nd; ++i) {
         _inc_set_ptr(i)
@@ -168,9 +182,8 @@ static NPY_INLINE int _PyArrayNeighIter_SetPtr(PyArrayNeighIterObject* iter)
 static NPY_INLINE int _PyArrayNeighIter_SetPtr2D(PyArrayNeighIterObject* iter)
 {
     npy_intp offset, bd;
-    PyArrayIterObject *base = (PyArrayIterObject*)iter;
 
-    base->dataptr = iter->_internal_iter->dataptr;
+    iter->dataptr = iter->_internal_iter->dataptr;
 
     _inc_set_ptr(0)
     _inc_set_ptr(1)

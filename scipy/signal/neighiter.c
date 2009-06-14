@@ -39,14 +39,14 @@ array_iter_init(PyArrayIterObject *it, PyObject *obj)
     return (PyObject *)it;
 }
 
-PyArrayNeighIterObject*
-PyArrayNeighIter_New(PyArrayIterObject *x, const npy_intp *bounds)
+PyArrayNeighborhoodIterObject*
+PyArrayNeighborhoodIter_New(PyArrayIterObject *x, const npy_intp *bounds)
 {
     int i;
-    PyArrayNeighIterObject *ret;
+    PyArrayNeighborhoodIterObject *ret;
 
     ret = PyArray_malloc(sizeof(*ret));
-    PyObject_Init((PyObject *)ret, &PyArrayNeighIter_Type);
+    PyObject_Init((PyObject *)ret, &PyArrayNeighborhoodIter_Type);
     if (ret == NULL) {
         return NULL;
     }
@@ -76,12 +76,12 @@ PyArrayNeighIter_New(PyArrayIterObject *x, const npy_intp *bounds)
      */
     x->contiguous = 0;
 
-    PyArrayNeighIter_Reset(ret);
+    PyArrayNeighborhoodIter_Reset(ret);
 
     return ret;
 }
 
-static void neighiter_dealloc(PyArrayNeighIterObject* iter)
+static void neighiter_dealloc(PyArrayNeighborhoodIterObject* iter)
 {
     PyDataMem_FREE(iter->zero);
     Py_DECREF(iter->_internal_iter);
@@ -90,11 +90,11 @@ static void neighiter_dealloc(PyArrayNeighIterObject* iter)
     PyArray_free((PyArrayObject*)iter);
 }
 
-PyTypeObject PyArrayNeighIter_Type = {
+PyTypeObject PyArrayNeighborhoodIter_Type = {
     PyObject_HEAD_INIT(NULL)
     0,                         /*ob_size*/
     "foo.neigh_internal_iter",          /*tp_name*/
-    sizeof(PyArrayNeighIterObject), /*tp_basicsize*/
+    sizeof(PyArrayNeighborhoodIterObject), /*tp_basicsize*/
     0,                         /*tp_itemsize*/
     (destructor)neighiter_dealloc,         /*tp_dealloc*/
     0,                         /*tp_print*/

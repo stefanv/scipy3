@@ -30,7 +30,7 @@ typedef struct {
     /* Bounds of the neighborhood to iterate over */
     npy_intp bounds[NPY_MAXDIMS][2];
 
-    /* Neighborhoodborhood points coordinates are computed relatively to the point pointed
+    /* Neighborhood points coordinates are computed relatively to the point pointed
      * by _internal_iter */
     PyArrayIterObject* _internal_iter;
     /* To keep a reference to the zero representation correponding to the dtype

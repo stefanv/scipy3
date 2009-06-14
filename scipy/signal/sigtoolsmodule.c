@@ -1341,8 +1341,8 @@ PyMODINIT_FUNC initsigtools(void) {
         */
 
         /* init neighborhood iter type */
-        PyArrayNeighIter_Type.tp_new = PyType_GenericNew;
-        if (PyType_Ready(&PyArrayNeighIter_Type) < 0) {
+        PyArrayNeighborhoodIter_Type.tp_new = PyType_GenericNew;
+        if (PyType_Ready(&PyArrayNeighborhoodIter_Type) < 0) {
                 return;
         }
 

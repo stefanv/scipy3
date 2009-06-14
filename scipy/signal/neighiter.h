@@ -47,33 +47,49 @@ PyTypeObject PyArrayNeighborhoodIter_Type;
 /*
  * Main ctor
  *
- * bounds is expected to be a (2 * iter->ao->nd) arrays, such as the range
- * bound[2*i]->bounds[2*i+1] defines the range where to walk for dimension i
- * (both bounds are included in the walked coordinates).
+ * Arguments
+ * ---------
+ * x: PyArrayIterObject*
+ *      The neighborhood will be computed relatively to the position currently
+ *      pointed by x->dataptr. 
+ * bounds: npy_intp*
+ *      Is expected to be a (2 * iter->ao->nd) arrays, such as the range
+ *      bound[2*i]->bounds[2*i+1] defines the range where to walk for dimension
+ *      i (both bounds are included in the walked coordinates).
  *
- * Example:
- *      PyArrayIterObject *iter;
- *      PyArrayNeighIterObject *neigh_iter;
- *      iter = PyArray_IterNew(x);
+ * Notes
+ * -----
+ *  - Borrows a reference to x
+ *  - Return NULL on failure (in which case the reference count of x is not changed)
+ *  - x itself can be a Neighborhood iterator: the object returned by this
+ *  function should be safe to use as a normal iterator
+ *  - If the position of x is moved before the neighborhood has been entirely
+ *  visited, the behavior is undefined
+ *  - If the coordinates point to a point outside the array, the iterator
+ *  points to 0. More elaborate schemes (constants, mirroring, repeat) may be
+ *  implemented later.
  *
- *      // For a 3x3 kernel
- *      bounds = {-1, 1, -1, 1};
- *      neigh_iter = PyArrayNeighIter_New(iter, bounds);
+ * Example
+ * -------
+ * PyArrayIterObject *iter;
+ * PyArrayNeighborhoodIterObject *neigh_iter;
+ * iter = PyArray_IterNew(x);
  *
- *      for(i = 0; i < iter->size; ++i) {
- *              for (j = 0; j < neigh_iter->size; ++j) {
- *                      // Walk around the item currently pointed by iter->dataptr
- *                      PyArrayNeighIter_Next(neigh_iter);
- *              }
+ * // For a 3x3 kernel
+ * bounds = {-1, 1, -1, 1};
+ * neigh_iter = PyArrayNeighborhoodIter_New(iter, bounds);
  *
- *              // Move to the next point of iter
- *              PyArrayIter_Next(iter);
- *              PyArrayNeighIter_Reset(neigh_iter);
- *      }
+ * for(i = 0; i < iter->size; ++i) {
+ *         for (j = 0; j < neigh_iter->size; ++j) {
+ *                 // Walk around the item currently pointed by iter->dataptr
+ *                 PyArrayNeighborhoodIter_Next(neigh_iter);
+ *         }
  *
- * If the coordinates point to a point outside the array, the iterator points
- * to 0. More elaborate schemes (constants, mirroring, repeat) may be
- * implemented later.
+ *         // Move to the next point of iter
+ *         PyArrayIter_Next(iter);
+ *         PyArrayNeighborhoodIter_Reset(neigh_iter);
+ * }
+ *
  */
 PyArrayNeighborhoodIterObject*
 PyArrayNeighborhoodIter_New(PyArrayIterObject* iter, const npy_intp *bounds);

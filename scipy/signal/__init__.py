@@ -11,6 +11,7 @@ from filter_design import *
 from ltisys import *
 from signaltools import *
 from wavelets import *
+from estimation import *
 
 __all__ = filter(lambda s:not s.startswith('_'),dir())
 from numpy.testing import Tester

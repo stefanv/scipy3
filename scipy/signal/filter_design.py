@@ -207,9 +207,25 @@ def zpk2tf(z,p,k):
 
 def normalize(b,a):
     """Normalize polynomial representation of a transfer function.
-
+    
+    Parameters
+    ----------
+    b : Array_like
+      Denominator of the transfer function.  See notes.
+    a : Array_like
+      Numerator of the transfer function.
+    Returns
+    -------
+    outb : ND_array
+      Normalized to `a[0]` == 1 denominator of the transfer function.
+    outa :
+      Normalized to `a[0]` == 1 numerator of the transfer function.
+    
+    Notes
+    -----
     If values of b are too close to 0, they are removed. In that case, a
     BadCoefficients warning is emitted.
+    
     """
     b,a = map(atleast_1d,(b,a))
     if len(a.shape) != 1:
@@ -233,8 +249,25 @@ def normalize(b,a):
 
 
 def lp2lp(b,a,wo=1.0):
-    """Return a low-pass filter with cuttoff frequency wo
+    """create a lowpass filter from a lowpass filter prototype.
+    
+    Return a low-pass filter with cuttoff frequency wo
     from a low-pass filter prototype with unity cutoff frequency.
+    
+    Parameters
+    ----------
+    b : array_like
+    a : array_like
+    wo : float
+        Cutoff frequency for the lowpass filter.
+    
+    Returns
+    -------
+    b : ND_array
+      Normalized denominator of the transfer function corresponding to the lowpass filter.
+    a : ND_array
+      Normalized numerator of the transfer function corresponding to the lowpass filter.
+    
     """
     a,b = map(atleast_1d,(a,b))
     try:
@@ -252,8 +285,25 @@ def lp2lp(b,a,wo=1.0):
     return normalize(b, a)
 
 def lp2hp(b,a,wo=1.0):
-    """Return a high-pass filter with cuttoff frequency wo
+    """creats a highpass filter from a lowpass filter prototype.
+    
+    Return a high-pass filter with cuttoff frequency wo
     from a low-pass filter prototype with unity cutoff frequency.
+    
+    Parameters
+    ----------
+    b : array_like
+    a : array_like
+    wo : float
+        Cutoff frequency for the lowpass filter.
+    
+    Returns
+    -------
+    b : ND_array
+      Normalized denominator of the transfer function corresponding to the lowpass filter.
+    a : ND_array
+      Normalized numerator of the transfer function corresponding to the lowpass filter.
+    
     """
     a,b = map(atleast_1d,(a,b))
     try:
@@ -280,8 +330,24 @@ def lp2hp(b,a,wo=1.0):
     return normalize(outb, outa)
 
 def lp2bp(b,a,wo=1.0, bw=1.0):
-    """Return a band-pass filter with center frequency wo and bandwidth bw
+    """Create a bandpass filter from a lowpass filter prototype
+    
+    Return a band-pass filter with center frequency wo and bandwidth bw
     from a low-pass filter prototype with unity cutoff frequency.
+    
+    Parameters
+    ----------
+    b  : array_like
+    a  : array_like
+    wo : float
+      Center frequency of the resulting bandpass filter
+    bw : float
+      Bandwidth of the resulting bandpass filter.
+    
+    returns
+    -------
+    bprime : ND_array
+    aprime : ND_array
     """
     a,b = map(atleast_1d,(a,b))
     D = len(a) - 1
@@ -384,28 +450,36 @@ def iirdesign(wp, ws, gpass, gstop, analog=0, ftype='ellip', output='ba'):
 
     Parameters
     ----------
-    wp, ws -- Passband and stopband edge frequencies, normalized from 0
+    wp, ws :  
+        Passband and stopband edge frequencies, normalized from 0
               to 1 (1 corresponds to pi radians / sample).  For example:
                  Lowpass:   wp = 0.2,          ws = 0.3
                  Highpass:  wp = 0.3,          ws = 0.2
                  Bandpass:  wp = [0.2, 0.5],   ws = [0.1, 0.6]
                  Bandstop:  wp = [0.1, 0.6],   ws = [0.2, 0.5]
-    gpass -- The maximum loss in the passband (dB).
-    gstop -- The minimum attenuation in the stopband (dB).
-    analog -- Non-zero to design an analog filter (in this case wp and
-              ws are in radians / second).
-    ftype -- The type of iir filter to design:
+    gpass : float
+       The maximum loss in the passband (dB).
+    gstop : float
+       The minimum attenuation in the stopband (dB).
+    analog : float, optional
+       Non-zero to design an analog filter (in this case wp and ws are in 
+                radians / second).
+    ftype : {'ellip','butter','cheby1','cheby2','bessel'}, optional
+        The type of iir filter to design:
                elliptic    : 'ellip'
                Butterworth : 'butter',
                Chebyshev I : 'cheby1',
                Chebyshev II: 'cheby2',
                Bessel :      'bessel'
-    output -- Type of output:  numerator/denominator ('ba') or pole-zero ('zpk')
+    output : {'ba','zpk'}, optional
+       Type of output:  numerator/denominator ('ba') or pole-zero ('zpk')
 
     Returns
     -------
-      b,a -- Numerator and denominator of the iir filter.
-      z,p,k -- Zeros, poles, and gain of the iir filter.
+      b,a : 
+       Numerator and denominator of the iir filter.
+      z,p,k : 
+       Zeros, poles, and gain of the iir filter.
     """
 
     try:
@@ -436,18 +510,25 @@ def iirfilter(N, Wn, rp=None, rs=None, btype='band', analog=0, ftype='butter', o
 
     Parameters
     ----------
-    N -- the order of the filter.
-    Wn -- a scalar or length-2 sequence giving the critical frequencies.
-    rp, rs -- For chebyshev and elliptic filters provides the maximum ripple
+    N : int
+      the order of the filter.
+    Wn : int, array like
+      a scalar or length-2 sequence giving the critical frequencies.
+    rp, rs : float, optional
+      For chebyshev and elliptic filters provides the maximum ripple
               in the passband and the minimum attenuation in the stop band.
-    btype -- the type of filter (lowpass, highpass, bandpass, or bandstop).
-    analog -- non-zero to return an analog filter, otherwise
-              a digital filter is returned.
-    ftype -- the type of IIR filter (Butterworth, Cauer (Elliptic),
-             Bessel, Chebyshev1, Chebyshev2)
-    output -- 'ba' for (b,a) output, 'zpk' for (z,p,k) output.
+    btype : {'bandpass','bandstop','lowpass','highpass'}, optional
+      the type of filter 
+    analog :{0,1}, optional
+      1 returns an analog filter, 0 returns a digital filter.
+    ftype  : {'butter','cauer', 'bessel','cheby1','cheby2'}, optional
+      the type of IIR filter 
+      'ba' for (b,a) output, 'zpk' for (z,p,k) output.
 
-    SEE ALSO butterord, cheb1ord, cheb2ord, ellipord
+    See Also
+    --------
+     butterord, cheb1ord, cheb2ord, ellipord
+    
     """
 
     ftype, btype, output = [x.lower() for x in (ftype, btype, output)]
@@ -522,10 +603,21 @@ def iirfilter(N, Wn, rp=None, rs=None, btype='band', analog=0, ftype='butter', o
 def butter(N, Wn, btype='low', analog=0, output='ba'):
     """Butterworth digital and analog filter design.
 
-    Description:
-
       Design an Nth order lowpass digital or analog Butterworth filter
       and return the filter coefficients in (B,A) or (Z,P,K) form.
+    
+    Parameters
+    ----------
+    N: int
+      order of the Butterworthfilter
+    Wn: float, array_like
+      float or length two list giving the critical frequencies.
+    btype: {'lowpass','highpass','bandpass','bandstop'}
+    analog: {0,1}
+        O returns a digital filter, 1 returns an analog filter.
+    output:{'ba',zpk'}
+      the type of IIR filter 
+      'ba' for (b,a) output, 'zpk' for (z,p,k) output.
 
     See also buttord.
     """
@@ -1594,17 +1686,25 @@ def fir2(N, f, a, ntp=512, window='hamming', nyq=1.):
 
     Parameters
     ----------
-      N      -- order of filter (number of taps)
-      f      -- frequency sampling points. Typically 0.0 to 1.0 with
-                1.0 being nyquist. Nyquest can be redefined via nyq
-      a      -- amplitude at frequency sampling points
-      ntp    -- FFT size - Default is 512 points
-      window -- Window function to use. Default is Hamming
-      nyq    -- Frequency for nyquist. Default is 1.0
+      N      : int   
+        order of filter (number of taps)
+      f      : array_like  
+        frequency sampling points. Typically 0.0 to 1.0 with 1.0 being nyquist. 
+        Nyquest can be redefined via nyq
+      a      : array_like    
+        amplitude at frequency sampling points
+      ntp    : int  
+        FFT size - Default is 512 points
+      window : window name or tuple for use with get_window
+        Window function to use. Default is Hamming
+      nyq    : float
+        nyquist frequency. Default is 1.0
     
     Returns
     -------
-      out    -- 
+      out  : ND_array  
+        Response of the filter 
+        
     """
     
     from signaltools import get_window
@@ -1619,7 +1719,7 @@ def fir2(N, f, a, ntp=512, window='hamming', nyq=1.):
     try:
         nyq = float(nyq)
     except:
-        raise ValueError, "nyquist frequency must be an number"
+        raise ValueError, "nyquist frequency must be a number"
         
     
     wind = get_window(window,N,0)
@@ -1629,10 +1729,10 @@ def fir2(N, f, a, ntp=512, window='hamming', nyq=1.):
     shift = exp(-(N-1)/2.*1.j*pi*numpy.arange(len(fx))/(len(fx)-1))
     fx = fx*shift
     #fill in pi<theta<2pi for ifft
-    fx = concatenate((fx, conjugate(fx[0:len(fx1)-1][::-1])),0)
+    fx = concatenate((fx, conjugate(fx[0:len(fx)-1][::-1])),0)
     
-    out = real(ifft(fx))
+    x = real(ifft(fx))
     #print out
-
-    return out[0:N]*wind
+    nn = len(x)/N
+    return x[0:N]*wind,x,wind
 

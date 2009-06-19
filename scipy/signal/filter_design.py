@@ -1695,7 +1695,7 @@ def fir2(N, f, a, ntp=512, window='hamming', nyq=1.):
         amplitude at frequency sampling points
       ntp    : int  
         FFT size - Default is 512 points
-      window : window name or tuple for use with get_window
+      window : window name or tuple 
         Window function to use. Default is Hamming
       nyq    : float
         nyquist frequency. Default is 1.0
@@ -1720,8 +1720,6 @@ def fir2(N, f, a, ntp=512, window='hamming', nyq=1.):
         nyq = float(nyq)
     except:
         raise ValueError, "nyquist frequency must be a number"
-        
-    
     wind = get_window(window,N,0)
     x = numpy.linspace(0.0, nyq, ntp+1)
     fx = numpy.array(numpy.interp(x, f, a))
@@ -1730,9 +1728,7 @@ def fir2(N, f, a, ntp=512, window='hamming', nyq=1.):
     fx = fx*shift
     #fill in pi<theta<2pi for ifft
     fx = concatenate((fx, conjugate(fx[0:len(fx)-1][::-1])),0)
-    
     x = real(ifft(fx))
     #print out
-    nn = len(x)/N
-    return x[0:N]*wind,x,wind
+    return x[0:N]*wind
 

@@ -37,7 +37,7 @@ build_lib('cephes', '.c', 'sc_cephes')
 
 # F libraries
 # XXX: handle no opt flags for mach
-build_lib('mach', '.f', 'sc_mach')
+build_lib('mach', '.c', 'sc_mach')
 build_lib('toms', '.f', 'sc_toms')
 build_lib('amos', '.f', 'sc_amos')
 build_lib('cdflib', '.f', 'sc_cdf')

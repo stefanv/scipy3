@@ -41,7 +41,8 @@ build_lib('mach', '.f', 'sc_mach')
 build_lib('toms', '.f', 'sc_toms')
 build_lib('amos', '.f', 'sc_amos')
 build_lib('cdflib', '.f', 'sc_cdf')
-build_lib('specfun', '.f', 'sc_specfunlib')
+env.DistutilsStaticExtLibrary('sc_specfunlib',
+    source=['specfun/specfun.f', 'specfun/specfun_error_hdl.c'])
 
 env.AppendUnique(LIBPATH = ['.'])
 

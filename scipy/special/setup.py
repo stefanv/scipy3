@@ -28,7 +28,7 @@ def configuration(parent_package='',top_path=None):
     config.add_library('sc_toms',sources=[join('amos','*.f')])
     config.add_library('sc_amos',sources=[join('toms','*.f')])
     config.add_library('sc_cdf',sources=[join('cdflib','*.f')])
-    config.add_library('sc_specfun',sources=[join('specfun','*.f')])
+    config.add_library('sc_specfun',sources=[join('specfun','*.f')] + [join('specfun', 'specfun_error_hdl.c')])
 
     # Extension _cephes
     sources = ['_cephesmodule.c', 'amos_wrappers.c', 'specfun_wrappers.c',

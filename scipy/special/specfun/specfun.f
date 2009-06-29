@@ -3843,8 +3843,7 @@ C
         IMPLICIT DOUBLE PRECISION (A-H,O-Z)
         XAM=-X+A*DLOG(X)
         IF (XAM.GT.700.0.OR.A.GT.170.0) THEN
-           WRITE(*,*)'a and/or x too large'
-           STOP
+           CALL SPERHD('INCOG','a and/or x too large')
         ENDIF
         IF (X.EQ.0.0) THEN
            GIN=0.0
@@ -4968,7 +4967,9 @@ C
               MD=3
            ENDIF
         ENDIF
-        IF (ID.LT.6) WRITE(*,*)'No accurate result obtained'
+        IF (ID.LT.6) THEN
+           CALL SPERHD('CHGU','No accurate result obtained')
+        ENDIF
         RETURN
         END
 
@@ -5740,7 +5741,7 @@ C
         L4=C-A.EQ.INT(C-A).AND.C-A.LE.0.0
         L5=C-B.EQ.INT(C-B).AND.C-B.LE.0.0
         IF (L0.OR.L1) THEN
-           WRITE(*,*)'The hypergeometric series is divergent'
+           CALL SPERHD('HYGFX','The hypergeometric series is divergent')
            RETURN
         ENDIF
         EPS=1.0D-15
@@ -5905,8 +5906,9 @@ C
         ENDIF
         A=AA
         B=BB
-        IF (K.GT.120) WRITE(*,115)
-115     FORMAT(1X,'Warning! You should check the accuracy')
+        IF (K.GT.120) THEN
+           CALL SPERHD('HYGFX','Warning! You should check the accuracy')
+        ENDIF
         RETURN
         END
 
@@ -6066,7 +6068,7 @@ C
         PI=3.141592653589793D0
         EL=.5772156649015329D0
         IF (L0.OR.L1) THEN
-C           WRITE(*,*)'The hypergeometric series is divergent'
+           CALL SPERHD('HYGFZ','The hypergeometric series is divergent')
            ZHF = 1.0D300
            RETURN
         ENDIF
@@ -6313,8 +6315,9 @@ C           WRITE(*,*)'The hypergeometric series is divergent'
         ENDIF
         A=AA
         B=BB
-        IF (K.GT.150) WRITE(*,160)
-160     FORMAT(1X,'Warning! You should check the accuracy')
+        IF (K.GT.150) THEN
+           CALL SPERHD('HYGFZ','Warning! You should check the accuracy')
+        ENDIF
         RETURN
         END
 

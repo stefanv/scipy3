@@ -23,7 +23,7 @@ def configuration(parent_package='',top_path=None):
                        macros=define_macros)
 
     # Fortran libraries
-    config.add_library('sc_mach',sources=[join('mach','*.f')],
+    config.add_library('sc_mach',sources=[join('mach','*.c')],
                        config_fc={'noopt':(__file__,1)})
     config.add_library('sc_toms',sources=[join('amos','*.f')])
     config.add_library('sc_amos',sources=[join('toms','*.f')])

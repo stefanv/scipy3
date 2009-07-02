@@ -70,11 +70,11 @@
 #include <stdlib.h>
 #include "mconf.h"
 #ifdef ANSIPROT
-extern double exp(double);
-extern double gamma(double);
-extern double log(double);
-extern double fabs(double);
-extern double floor(double);
+//extern double exp(double);
+//extern double gamma(double);
+//extern double log(double);
+//extern double fabs(double);
+//extern double floor(double);
 #else
 double exp(), gamma(), log(), fabs(), floor();
 #endif
@@ -357,15 +357,15 @@ static int temme_ik_series(double v, double x, double *K, double *K1)
     double a, b, c, d, sigma, gamma1, gamma2;
     unsigned long k;
 
+    double gp = gamma(v + 1) - 1;
+    double gm = gamma(-v + 1) - 1;
+
     /*
      * |x| <= 2, Temme series converge rapidly
      * |x| > 2, the larger the |x|, the slower the convergence
      */
     BOOST_ASSERT(fabs(x) <= 2);
     BOOST_ASSERT(fabs(v) <= 0.5f);
-
-    double gp = gamma(v + 1) - 1;
-    double gm = gamma(-v + 1) - 1;
 
     a = log(x / 2);
     b = exp(v * a);

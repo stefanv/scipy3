@@ -89,7 +89,8 @@ C     .. Executable Statements ..
       IF (status.GT.0) GO TO 310
 
       qcond = .NOT. qxmon(small,x,big)
-      IF (qcond) STOP ' SMALL, X, BIG not monotone in INVR'
+C      IF (qcond) STOP ' SMALL, X, BIG not monotone in INVR'
+      IF (qcond) STOP
       xsave = x
 C
 C     See that SMALL and BIG bound the zero and set QINCR

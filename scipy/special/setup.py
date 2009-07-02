@@ -4,7 +4,7 @@ import os
 import sys
 from os.path import join
 from distutils.sysconfig import get_python_inc
-from numpy.distutils.misc_util import get_numpy_include_dirs
+from numpy.distutils.misc_util import get_numpy_include_dirs, get_npymath_info
 
 def configuration(parent_package='',top_path=None):
     from numpy.distutils.misc_util import Configuration
@@ -32,7 +32,7 @@ def configuration(parent_package='',top_path=None):
 
     # Extension _cephes
     sources = ['_cephesmodule.c', 'amos_wrappers.c', 'specfun_wrappers.c',
-               'toms_wrappers.c','cdf_wrappers.c','ufunc_extras.c']
+               'toms_wrappers.c','cdf_wrappers.c','ufunc_extras.c', 'gfortran_runtime.c']
     config.add_extension('_cephes', sources=sources,
                          libraries=['sc_amos','sc_toms','sc_c_misc','sc_cephes','sc_mach',
                                     'sc_cdf', 'sc_specfun'],
@@ -41,15 +41,17 @@ def configuration(parent_package='',top_path=None):
                                   "cdf_wrappers.h", "specfun_wrappers.h",
                                   "c_misc/misc.h", "cephes_doc.h",
                                   "cephes/mconf.h", "cephes/cephes_names.h"],
-                         define_macros = define_macros
+                         define_macros = define_macros,
+			 extra_info=get_npymath_info(),
                          )
 
     # Extension specfun
     config.add_extension('specfun',
-                         sources=['specfun.pyf'],
+                         sources=['specfun.pyf', 'gfortran_runtime.c'],
                          f2py_options=['--no-wrap-functions'],
                          define_macros=[],
-                         libraries=['sc_specfun'])
+                         libraries=['sc_specfun'],
+			 extra_info=get_npymath_info())
 
     config.add_data_dir('tests')
 

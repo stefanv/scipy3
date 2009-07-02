@@ -42,7 +42,7 @@ extern void cneg ( cmplx *a );
 */
 /*extern double cabs ( cmplx *z );*/
 /* extern void csqrt ( cmplx *z, cmplx *w );*/
-extern double hypot ( double x, double y );
+//extern double hypot ( double x, double y );
 extern double cosh ( double x );
 extern double dawsn ( double xx );
 extern void eigens ( double A[], double RR[], double E[], int N );
@@ -64,10 +64,10 @@ extern double fdtri ( double a, double b, double y );
 /*
 extern int fftr ( double x[], int m0, double sine[] );
 */
-extern double ceil ( double x );
-extern double floor ( double x );
-extern double frexp ( double x, int *pw2 );
-extern double ldexp ( double x, int pw2 );
+//extern double ceil ( double x );
+//extern double floor ( double x );
+//extern double frexp ( double x, int *pw2 );
+//extern double ldexp ( double x, int pw2 );
 /* extern int signbit ( double x );
 extern int isnan ( double x );
 extern int isfinite ( double x );

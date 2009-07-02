@@ -91,7 +91,7 @@ def configuration(parent_package='',top_path=None):
 
     # calc_lwork:
     config.add_extension('calc_lwork',
-                         sources = ['calc_lwork.f'],
+                         sources = ['calc_lwork.f', 'gfortran_runtime.c'],
                          extra_info = lapack_opt
                          )
 

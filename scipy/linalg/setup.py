@@ -172,7 +172,7 @@ def configuration(parent_package='',top_path=None):
 
     # calc_lwork:
     config.add_extension('calc_lwork',
-                         [join('src','calc_lwork.f')],
+                         [join('src','calc_lwork.f'), 'gfortran_runtime.c'],
                          extra_info = lapack_opt
                          )
 

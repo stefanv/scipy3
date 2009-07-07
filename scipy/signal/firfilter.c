@@ -1,28 +1,28 @@
 #include <Python.h>
-#define NO_IMPORT_ARRAY
-#include "sigtools.h"
-#include "neighiter.h"
-#define PY_ARRAY_UNIQUE
+//#define PY_ARRAY_UNIQUE_SYMBOL _scipy_signal_ARRAY_API
+//#define NO_IMPORT_ARRAY
 #include <numpy/noprefix.h>
+
+#include "sigtools.h"
 static int elsizes[] = {sizeof(Bool),
-			sizeof(byte),
+						sizeof(byte),
                         sizeof(ubyte),
                         sizeof(short),
                         sizeof(ushort),
                         sizeof(int),
-			sizeof(uint),
-			sizeof(long),
+						sizeof(uint),
+						sizeof(long),
                         sizeof(ulong),
                         sizeof(longlong),
-			sizeof(ulonglong),
+						sizeof(ulonglong),
                         sizeof(float),
                         sizeof(double),
-			sizeof(longdouble),
+						sizeof(longdouble),
                         sizeof(cfloat),
                         sizeof(cdouble),
-			sizeof(clongdouble),
+						sizeof(clongdouble),
                         sizeof(void *),
-			0,0,0,0};
+						0,0,0,0};
 
 typedef void (OneMultAddFunction) (char *, char *, char *);
 
@@ -65,28 +65,28 @@ MAKE_C_ONEMULTADD(CLONGDOUBLE, longdouble)
 #endif /* __GNUC__ */
 
 static OneMultAddFunction *OneMultAdd[]={NULL,
-					 BYTE_onemultadd,
-					 UBYTE_onemultadd,
-					 SHORT_onemultadd,
+					 					 BYTE_onemultadd,
+					 					 UBYTE_onemultadd,
+					 					 SHORT_onemultadd,
                                          USHORT_onemultadd,
-					 INT_onemultadd,
+					 					 INT_onemultadd,
                                          UINT_onemultadd,
-					 LONG_onemultadd,
-					 ULONG_onemultadd,
-					 LONGLONG_onemultadd,
-					 ULONGLONG_onemultadd,
-					 FLOAT_onemultadd,
-					 DOUBLE_onemultadd,
-					 LONGDOUBLE_onemultadd,
-					 CFLOAT_onemultadd,
-					 CDOUBLE_onemultadd,
-					 CLONGDOUBLE_onemultadd,
+					 					 LONG_onemultadd,
+					 					 ULONG_onemultadd,
+					 					 LONGLONG_onemultadd,
+					 					 ULONGLONG_onemultadd,
+					 					 FLOAT_onemultadd,
+					 					 DOUBLE_onemultadd,
+					 					 LONGDOUBLE_onemultadd,
+					 					 CFLOAT_onemultadd,
+					 					 CDOUBLE_onemultadd,
+					 					 CLONGDOUBLE_onemultadd,
                                          NULL, NULL, NULL, NULL};
 
 
 /* This could definitely be more optimized... */
 
-int pylab__2d(PyArrayIterObject* itSignal,
+int pylab_convolve_2d(PyArrayIterObject* itSignal,
 			intp* Signals,
 			PyArrayIterObject* itKernel,
 			intp* Kerns,
@@ -96,7 +96,7 @@ int pylab__2d(PyArrayIterObject* itSignal,
 			char  *fillvalue)
 {
   int boundary, outsize, convolve, type_size, type_num;
-  int i,j,k;
+  int i,j;
   PyArrayNeighborhoodIterObject *curSignal;
   int bounds[4];
   OneMultAddFunction *mult_and_add;
@@ -136,20 +136,29 @@ char *sum=NULL, *value=NULL;
   default:
 	return -1;
 }
-  bounds[1] = bounds[0]+Outs[0];
-  bounds[3] = bounds[2]+Outs[1];
-  curSignal = (PyArrayNeighborhoodIterObject *)PyArray_NeighborhoodIterNew(*itSignal,bounds);
+  bounds[1] = bounds[0];
+  bounds[3] = bounds[2];
+  if (convolve) {
+  	bounds[0] +=Outs[0];
+  	bounds[2] +=Outs[1];
+ }
+  else{
+  	bounds[1] += Outs[0];
+  	bounds[3] += Outs[1];
+ }
+  
+  curSignal = (PyArrayNeighborhoodIterObject *)PyArray_NeighborhoodIterNew(itSignal, bounds);
   
 if (boundary == VALID){
-  for (i = 0; i<itOut->size;++i){
-	sum = 0.0
+  for (i = 0; i<itOut->size;++i){/*iterate over each element in the output array*/
+	memset(sum, 0, type_size);
 	PyArray_ITER_NEXT((PyObject *)itOut);
 	for (j = 0; i<itKernel->size;++j){
 		PyArray_ITER_NEXT((PyObject *)itKernel);
-		mult_and_add(sum,*itKernel,*curSignal)
+		mult_and_add(sum,(char *)itKernel,(char *)curSignal);
 	}
 
-	memcpy(*itOut,sum,type_size)
+	//memcpy(itOut, sum, type_size);
 	PyArray_ITER_RESET((PyObject *)itKernel);
   }
 }

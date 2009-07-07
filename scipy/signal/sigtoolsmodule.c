@@ -7,7 +7,7 @@ is granted under the SciPy License.
 
 #include "sigtools.h"
 #include <setjmp.h>
-#include "neighiter.h"
+
 
 #define PYERR(message) {PyErr_SetString(PyExc_ValueError, message); goto fail;}
 

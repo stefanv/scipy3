@@ -1,6 +1,6 @@
 #include <Python.h>
-//#define PY_ARRAY_UNIQUE_SYMBOL _scipy_signal_ARRAY_API
-//#define NO_IMPORT_ARRAY
+#define PY_ARRAY_UNIQUE_SYMBOL _scipy_signal_ARRAY_API
+#define NO_IMPORT_ARRAY
 #include <numpy/noprefix.h>
 
 #include "sigtools.h"

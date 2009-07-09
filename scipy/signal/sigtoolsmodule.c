@@ -5,6 +5,10 @@ Permission to use, copy, modify, and distribute this software without fee
 is granted under the SciPy License.
 */
 
+#include <Python.h>
+#define PY_ARRAY_UNIQUE_SYMBOL _scipy_signal_ARRAY_API
+#include <numpy/noprefix.h>
+
 #include "sigtools.h"
 #include <setjmp.h>
 
@@ -1400,12 +1404,12 @@ static PyObject *sigtools_convolve2d(PyObject *NPY_UNUSED(dummy), PyObject *args
     flag = mode + boundary + (typenum << TYPE_SHIFT) + \
       (flip != 0) * FLIP_MASK;
 
-itSignal = (PyArrayIterObject* )PyArray_IterNew((PyObject*)in1);
+itSignal = (PyArrayIterObject* )PyArray_IterNew((PyObject*)ain1);
     if (itSignal == NULL) {
         return NULL;
     }
 
-itKernel = (PyArrayIterObject* )PyArray_IterNew((PyObject*)in2);
+itKernel = (PyArrayIterObject* )PyArray_IterNew((PyObject*)ain2);
 	if (itKernel == NULL) {
 		return NULL;
   }

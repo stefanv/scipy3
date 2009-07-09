@@ -69,9 +69,15 @@ try:
 finally:
     sys.path.pop(0)
 
+# Default python version
+PYVER="2.5"
+DMG_DIR = "dmg-source"
+
 # Wine config for win32 builds
-WINE_SITE_CFG = ""
-if sys.platform == "darwin":
+if sys.platform == "win32":
+    WINE_PY25 = [r"C:\Python25\python.exe"]
+    WINE_PY26 = [r"C:\Python26\python26.exe"]
+elif sys.platform == "darwin":
     WINE_PY25 = ["/Applications/Darwine/Wine.bundle/Contents/bin/wine",
                  "/Users/david/.wine/drive_c/Python25/python.exe"]
     WINE_PY26 = ["/Applications/Darwine/Wine.bundle/Contents/bin/wine",
@@ -84,8 +90,8 @@ SUPERPACK_BUILD = 'build-superpack'
 SUPERPACK_BINDIR = os.path.join(SUPERPACK_BUILD, 'binaries')
 
 # XXX: fix this in a sane way
-MPKG_PYTHON = {"25": "/Library/Frameworks/Python.framework/Versions/2.5/bin/python",
-        "26": "/Library/Frameworks/Python.framework/Versions/2.6/bin/python"}
+MPKG_PYTHON = {"2.5": "/Library/Frameworks/Python.framework/Versions/2.5/bin/python",
+        "2.6": "/Library/Frameworks/Python.framework/Versions/2.6/bin/python"}
 # Full path to the *static* gfortran runtime
 LIBGFORTRAN_A_PATH = "/usr/local/lib/libgfortran.a"
 
@@ -120,6 +126,22 @@ options(sphinx=Bunch(builddir="build", sourcedir="source", docroot='doc'),
         packages_to_install=["sphinx==0.6.1"]),
         wininst=Bunch(pyver="2.5", scratch=True))
 
+def parse_numpy_version(pyexec):
+    cmd = [pyexec, "-c", "'import numpy; print numpy.version.version'"]
+
+    # Execute in shell because launching python from python does not work
+    # (hangs)
+    p = subprocess.Popen(" ".join(cmd), stdout=subprocess.PIPE, shell=True)
+    out = p.communicate()[0]
+    if p.returncode:
+        raise RuntimeError("Command %s failed" % " ".join(cmd))
+
+    a = re.compile("^([0-9]+)\.([0-9]+)\.([0-9]+)")
+    if a:
+        return tuple([int(i) for i in a.match(out).groups()[:3]])
+    else:
+        raise ValueError("Could not parse version (%s)" % out)
+
 # Bootstrap stuff
 @task
 def bootstrap():
@@ -147,7 +169,7 @@ def clean_bootstrap():
 @needs('clean', 'clean_bootstrap')
 def nuke():
     """Remove everything: build dir, installers, bootstrap dirs, etc..."""
-    d = [SUPERPACK_BUILD, INSTALLERS_DIR]
+    d = [SUPERPACK_BUILD, INSTALLERS_DIR, DMG_DIR]
     for i in d:
         paver.path.path(i).rmtree()
 
@@ -308,7 +330,7 @@ def prepare_nsis_script(pyver, numver):
 
     installer_name = superpack_name(pyver, numver)
     cnt = "".join(source.readlines())
-    cnt = cnt.replace('@NUMPY_INSTALLER_NAME@', installer_name)
+    cnt = cnt.replace('@SCIPY_INSTALLER_NAME@', installer_name)
     for arch in ['nosse', 'sse2', 'sse3']:
         cnt = cnt.replace('@%s_BINARY@' % arch.upper(),
                           internal_wininst_name(arch))
@@ -353,10 +375,21 @@ def bdist_superpack(options):
 def bdist_wininst_simple():
     """Simple wininst-based installer."""
     call_task("clean")
-    _bdist_wininst(options.bdist_wininst_simple.python_version, SITECFG['nosse'])
+    env = os.environ.copy()
+    for k, v in SITECFG['nosse'].items():
+        env[k] = v
+    _bdist_wininst(options.bdist_wininst_simple.python_version, env)
 
-def _bdist_wininst(pyver, cfg_env=WINE_SITE_CFG):
-    subprocess.call(WINE_PYS[pyver] + ['setup.py', 'build', '-c', 'mingw32', 'bdist_wininst'], env=cfg_env)
+def _bdist_wininst(pyver, cfg_env):
+    log = open('build.log', 'w')
+    try:
+        ret = subprocess.call(WINE_PYS[pyver] + ['setup.py', 'build', '-c', 'mingw32', 'bdist_wininst'],
+                env=cfg_env, stdout=log, stderr=subprocess.STDOUT)
+    finally:
+        log.close()
+
+    if ret:
+        raise RuntimeError("Error while building windows installer, see build.log")
 
 #-------------------
 # Mac OS X installer
@@ -372,15 +405,14 @@ def macosx_version():
         if m:
             return m.groups()
 
-def mpkg_name():
+def mpkg_name(pyver):
     maj, min = macosx_version()[:2]
-    pyver = ".".join([str(i) for i in sys.version_info[:2]])
     return "scipy-%s-py%s-macosx%s.%s.mpkg" % \
             (FULLVERSION, pyver, maj, min)
 
-def dmg_name():
+def dmg_name(pyver):
     #maj, min = macosx_version()[:2]
-    pyver = ".".join([str(i) for i in sys.version_info[:2]])
+    #pyver = ".".join([str(i) for i in sys.version_info[:2]])
     #return "scipy-%s-py%s-macosx%s.%s.dmg" % \
     #        (FULLVERSION, pyver, maj, min)
     return "scipy-%s-py%s-python.org.dmg" % \
@@ -392,13 +424,28 @@ def prepare_static_gfortran_runtime(d):
     shutil.copy(LIBGFORTRAN_A_PATH, d)
 
 @task
+@cmdopts([('python_version=', 'p', 'Python version to build the installer against')])
 def bdist_mpkg():
     call_task("clean")
+
+    try:
+        pyver = options.bdist_mpkg.python_version
+    except AttributeError:
+        pyver = PYVER
+
+    _build_mpkg(pyver)
+
+def _build_mpkg(pyver):
+    numver = parse_numpy_version(MPKG_PYTHON[pyver])
+    numverstr = ".".join(["%i" % i for i in numver])
+    if pyver == "2.5" and not numver[:2] == (1, 2):
+        raise ValueError("Scipy 0.7.x should be built against numpy 1.2.x for python 2.5 (detected %s)" % numverstr)
+    elif pyver == "2.6" and not numver[:2] == (1, 3):
+        raise ValueError("Scipy 0.7.x should be built against numpy 1.3.x for python 2.6 (detected %s)" % numverstr)
 
     prepare_static_gfortran_runtime("build")
     ldflags = "-undefined dynamic_lookup -bundle -arch i386 -arch ppc -Wl,-search_paths_first"
     ldflags += " -L%s" % os.path.join(os.path.dirname(__file__), "build")
-    pyver = "".join([str(i) for i in sys.version_info[:2]])
     sh("LDFLAGS='%s' %s setupegg.py bdist_mpkg" % (ldflags, MPKG_PYTHON[pyver]))
 
 @task
@@ -445,12 +492,37 @@ def dmg():
     subprocess.check_call(cmd, cwd="scipy-macosx-installer")
 
 @task
+@cmdopts([('python_version=', 'p', 'Python version to build the installer against')])
 def simple_dmg():
+    try:
+        pyver = options.simple_dmg.python_version
+    except AttributeError:
+        pyver = PYVER
+
+    src_dir = DMG_DIR
+
+    # Clean the source dir
+    if os.path.exists(src_dir):
+        shutil.rmtree(src_dir)
+    os.makedirs(src_dir)
+
+    # Build the mpkg
+    clean()
+    _build_mpkg(pyver)
+
     # Build the dmg
-    image_name = dmg_name()
+    shutil.copytree(os.path.join("dist", mpkg_name(pyver)),
+                    os.path.join(src_dir, mpkg_name(pyver)))
+    _create_dmg(pyver, src_dir, "Scipy Universal %s" % FULLVERSION)
+
+def _create_dmg(pyver, src_dir, volname=None):
+    # Build the dmg
+    image_name = dmg_name(pyver)
     image = paver.path.path(image_name)
     image.remove()
-    cmd = ["hdiutil", "create", image_name, "-srcdir", str("dist")]
+    cmd = ["hdiutil", "create", image_name, "-srcdir", src_dir]
+    if volname:
+        cmd.extend(["-volname", "'%s'" % volname])
     sh(" ".join(cmd))
 
 @task

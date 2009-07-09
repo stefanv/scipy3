@@ -23,7 +23,7 @@ TODO:
 """
 
 #currently not used
-DECIMAL = 0 # specify the precision of the tests
+DECIMAL = 5 # specify the precision of the tests  # increased from 0 to 5
 DECIMAL_kurt = 0
 
 distcont = [
@@ -73,7 +73,7 @@ distcont = [
     ['invweibull', (10.58,)], # sample mean test fails at(0.58847112119264788,)]
     ['johnsonsb', (4.3172675099141058, 3.1837781130785063)],
     ['johnsonsu', (2.554395574161155, 2.2482281679651965)],
-    ['ksone', (22,)],  # new added
+    ['ksone', (1000,)],  #replace 22 by 100 to avoid failing range, ticket 956
     ['kstwobign', ()],
     ['laplace', ()],
     ['levy', ()],
@@ -285,7 +285,7 @@ def check_sample_meanvar(sm,m,msg):
 ##        assert abs(sm) > 10000, 'infinite moment, sm = ' + str(sm)
 
 def check_cdf_ppf(distfn,arg,msg):
-    npt.assert_almost_equal(distfn.cdf(distfn.ppf([0.001,0.5,0.990], *arg), *arg),
+    npt.assert_almost_equal(distfn.cdf(distfn.ppf([0.001,0.5,0.999], *arg), *arg),
                             [0.001,0.5,0.999], decimal=DECIMAL, err_msg= msg + \
                             ' - cdf-ppf roundtrip')
 

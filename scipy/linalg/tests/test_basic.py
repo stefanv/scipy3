@@ -19,13 +19,14 @@ Run tests if linalg is not installed:
   python tests/test_basic.py
 """
 
-from numpy import arange, add, array, dot, zeros, identity, conjugate, transpose
+from numpy import arange, add, array, dot, zeros, identity, conjugate, \
+     transpose, eye, all
 import numpy.linalg as linalg
 
 from numpy.testing import *
 
 from scipy.linalg import solve,inv,det,lstsq, toeplitz, hankel, tri, triu, \
-     tril, pinv, pinv2, solve_banded
+     tril, pinv, pinv2, solve_banded, block_diag
 
 
 def random(size):
@@ -397,6 +398,23 @@ class TestHankel(TestCase):
         assert_array_equal(y,[[1,2,3],[2,3,0],[3,0,0]])
         y = hankel([1,2,3],[3,4,5])
         assert_array_equal(y,[[1,2,3],[2,3,4],[3,4,5]])
+
+class TestBlockDiag:
+    def test_basic(self):
+        x = block_diag(eye(2), [[1,2], [3,4], [5,6]], [[1, 2, 3]])
+        assert all(x == [[1, 0, 0, 0, 0, 0, 0],
+                         [0, 1, 0, 0, 0, 0, 0],
+                         [0, 0, 1, 2, 0, 0, 0],
+                         [0, 0, 3, 4, 0, 0, 0],
+                         [0, 0, 5, 6, 0, 0, 0],
+                         [0, 0, 0, 0, 1, 2, 3]])
+
+    def test_dtype(self):
+        x = block_diag([[1.5]])
+        assert_equal(x.dtype, float)
+
+        x = block_diag([[True]])
+        assert_equal(x.dtype, bool)
 
 class TestPinv(TestCase):
 

@@ -5,6 +5,10 @@ Permission to use, copy, modify, and distribute this software without fee
 is granted under the SciPy License.
 */
 
+#include <Python.h>
+#define PY_ARRAY_UNIQUE_SYMBOL _scipy_signal_ARRAY_API
+#include <numpy/noprefix.h>
+
 #include "sigtools.h"
 #include <setjmp.h>
 

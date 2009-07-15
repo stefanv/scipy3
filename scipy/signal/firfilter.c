@@ -88,22 +88,18 @@ static OneMultAddFunction *OneMultAdd[]={NULL,
 /* This could definitely be more optimized... */
 
 void convolve2d_worker(PyArrayIterObject *itSignal, 
-			 		   PyArrayNeighborhoodIterObject *curSignal, 
-			 		   PyArrayIterObject *itKern, 
+			 		   PyArrayNeighborhoodIterObject *curSignal,  
 			 		   PyArrayNeighborhoodIterObject *curKern, 
 			 		   PyArrayIterObject *itOut, 
-			 		   int typenum,
-			 		   int mode, 
-			 		   int boundary)
-  {
+			 		   int typenum)
+  {//only need what's there.  all the boundaries and whatnot are handled by sigtools.
   OneMultAddFunction *mult_and_add;
   int i, j;
-  
   mult_and_add = OneMultAdd[typenum];
   if (mult_and_add == NULL) {PYERR("Convolve not available for this type");}
   
   for (i = 0;i<itOut->size;++i){
-  	for (j = 0; j < curSignal->size;++j){
+  	for (j = 0; j < curKern->size;++j){
   		mult_and_add((char *)itOut,(char *)curSignal,(char *)curKern);
   		
   		PyArrayNeighborhoodIter_Next(curSignal);

@@ -1331,148 +1331,134 @@ fail:
 
 static char doc_convolve2d[] = "out = _convolve2d(in1, in2, flip, mode, boundary, fillvalue)";
 
-extern int pylab_convolve_2d(PyArrayIterObject*, intp*, PyArrayIterObject*, intp*, PyArrayIterObject*, intp*, int, char*);
+extern void pylab_convolve_2d(PyArrayIterObject*,
+							PyArrayNeighborhoodIterObject*, 
+							PyArrayNeighborhoodIterObject*, 
+							PyArrayIterObject*,
+							int);
 
 static PyObject *sigtools_convolve2d(PyObject *NPY_UNUSED(dummy), PyObject *args) {
 
     PyObject *in1=NULL, *in2=NULL, *fill_value=NULL;
-    int mode=2, boundary=0, typenum, flag, flip=1, ret;
-    char zeros[32];  /* Zeros */
-    int n1, n2, i;
-    intp *aout_dimens=NULL, *dims=NULL;
-    PyArrayObject *ain1=NULL, *ain2=NULL, *aout=NULL;
-    PyArrayObject *afill=NULL, *newfill=NULL;
-    PyArrayIterObject *itSignal, *itKernel, *itOut;
-
-    if (!PyArg_ParseTuple(args, "OO|iiiO", &in1, &in2, &flip, &mode, &boundary, &fill_value)) {
+    int mode=2, boundary=0, typenum ;
+    PyArrayObject *Signal, Kernel, Out;
+    PyArrayIterObject *itSignal, *itKern,*itOut;
+    PyArrayNeighborhoodIterObject *curSignal, *curKern;
+    int zeropad=0, onespad=0;
+        
+        
+    if (!PyArg_ParseTuple(args, "OO|iiO", &in1, &in2, &mode, &boundary, &fill_value)) {
         return NULL;
     }
+    
 
     typenum = PyArray_ObjectType(in1, 0);
     typenum = PyArray_ObjectType(in2, typenum);
-    ain1 = (PyArrayObject *)PyArray_FromObject(in1, typenum, 2, 2);
-    if (ain1 == NULL) goto fail;
-    ain2 = (PyArrayObject *)PyArray_FromObject(in2, typenum, 2, 2);
-    if (ain2 == NULL) goto fail;
+    
+    Signal = (PyArrayObject *)PyArray_FromObject((PyObject *)in1, typenum, 2, 2);
+    if (Signal == NULL) goto signal_f;
+    
+    Kernel = (PyArrayObject *)PyArray_FromObject((PyObject *)in2, typenum, 2, 2);
+    if (Kernel == NULL) goto kernel_f;
 
-    if ((boundary != PAD) && (boundary != REFLECT) && (boundary != CIRCULAR))
-      PYERR("Incorrect boundary value.");
+    if (boundary == CIRCULAR)||(boundary == MIRROR){PyErr_SetString(PyExc_ValueError, "unsupported bounds");}
+    if (mode == VALID)||(mode == SAME){PyErr_SetString(PyExc_ValueError, "unsupported mode");}
+    
     if (boundary == PAD) {
-	if (fill_value == NULL) {
-	    newfill = (PyArrayObject *)PyArray_SimpleNewFromData(0, dims, typenum, zeros);
-	}
-	else {
-	    afill = (PyArrayObject *)PyArray_FromObject(fill_value, PyArray_CDOUBLE, 0, 0);
-	    if (afill == NULL) goto fail;
-	    newfill = (PyArrayObject *)PyArray_Cast(afill, typenum);
-	}
-	if (newfill == NULL) goto fail;
-    }
-    else {
-	newfill = (PyArrayObject *)PyArray_SimpleNewFromData(0, dims, typenum, zeros);
-	if (newfill == NULL) goto fail;
-    }
+		fillval = (PyArrayObject *)PyArrayObject_New(0,0,typenum,fill_value)
+		if (fillval == NULL) {PyErr_SetString(PyExc_ValueError, "pad boundary with no value specified");}
+		if (fillval->data == (typenum)0 ){
+			zeropad = 1;
+		}
+		else if (fillval->data == (typenum)1 ){
+			onepad = 1;
+			PyErr_SetString(PyExc_ValueError, "unsupported pad value");
+		}
+		else {
+			fill = fillval->data;
+			PyErr_SetString(PyExc_ValueError, "unsupported pad value");
+		}
 
     /* Swap if first argument is not the largest */
-    if (n1 < n2) { aout = ain1; ain1 = ain2; ain2 = aout; aout = NULL; }
-    aout_dimens = malloc(ain1->nd*sizeof(intp));
+    if (Signal->size < Kern->size) { Out = Signal; Signal = Kernel; Kernel = Out; Out = NULL; }
+	
     switch(mode & OUTSIZE_MASK) {
     case VALID:
-	for (i = 0; i < ain1->nd; i++) { 
-	    aout_dimens[i] = ain1->dimensions[i] - ain2->dimensions[i] + 1;
-	    if (aout_dimens[i] < 0) {
+    Outs[0] = Signal->dimensions[0] - Kern->dimensions[0]+1;
+    Outs[1] = Signal->dimensions[1] - Kern->dimensions[1]+1;
+    if (Outs[0]<0)|(Outs[1]<0){
 		PyErr_SetString(PyExc_ValueError, "no part of the output is valid, use option 1 (same) or 2 (full) for third argument");
-		goto fail;
-	    }
 	}
+	if (outsize == FULL) new_m = convolve ? m : (m-Nwin[0]+1);
+    else if (outsize == SAME) new_m = convolve ? (m+((Nwin[0]-1)>>1)) : (m-((Nwin[0]-1) >> 1));
+    else new_m = convolve ? (m+Nwin[0]-1) : m; /* VALID */
+	
+	sigbounds[0] = 0;
+	sigbounds[1] = 0;
+
+
 	break;
     case SAME:
-	for (i = 0; i < ain1->nd; i++) { aout_dimens[i] = ain1->dimensions[i];}
+    Outs = Signal->dimensions;
+	sigbounds[0] = -Kern->dimensions[0]+1>>1;
+	sigbounds[1] = -Kern->dimensions[1]+1>>1;
+
 	break;
     case FULL:
-	for (i = 0; i < ain1->nd; i++) { aout_dimens[i] = ain1->dimensions[i] + ain2->dimensions[i] - 1;}
+    Outs[0] = Signal->dimensions[0]+Kern->dimensions[0]-1;
+    Outs[1] = Signal->dimensions[1]+Kern->dimensions[1]-1;
+;
+	sigbounds[0] = -Kern->dimensions[0]+1
+	sigbounds[1] = -Kern->dimensions[1]+1
+
 	break;
     default: 
 	PyErr_SetString(PyExc_ValueError, 
 			"mode must be 0 (valid), 1 (same), or 2 (full)");
 	goto fail;
     }
+    
+    sigbounds[2] = sigbounds[0]+Outs[0];
+	sigbounds[3] = sigbounds[1]+Outs[1];
 	
-    aout = (PyArrayObject *)PyArray_SimpleNew(ain1->nd, aout_dimens, typenum);
-    if (aout == NULL) goto fail;
+	kernbounds[0] = Kern->dimensions[0];
+	kernbounds[1] = Kern->dimensions[1];
+	kernbounds[3] = kernbounds[0] - Outs[0];
+	kernbounds[4] = kernbounds[1] - Outs[1];
+	
+    Out = (PyArrayObject *)PyArray_SimpleNew(2,Outs,typenum);
+    if (Out == NULL) {goto out_f;}
+    
+	/* create the iterators */
+	itSignal = (PyArrayIterObject *)PyArrayIterNew((PyArrayObject *)Signal);
+	if (itSignal == NULL){PyErr_SetString(PyExc_ValueError, "unsupported mode");}
+	
+	itKern = (PyArrayIterObject *)PyArrayIterNew((PyArrayObject *)Kern);
+	if (itKern == NULL){PyErr_SetString(PyExc_ValueError, "unsupported mode");}
+	
+	itOut = (PyArrayIterObject *)PyArrayIterNew((PyArrayObject *)Out);
+	if (itOut == NULL){PyErr_SetString(PyExc_ValueError, "unsupported mode");}
 
-    flag = mode + boundary + (typenum << TYPE_SHIFT) + \
-      (flip != 0) * FLIP_MASK;
-
-itSignal = (PyArrayIterObject* )PyArray_IterNew((PyObject*)ain1);
-    if (itSignal == NULL) {
-        return NULL;
-    }
-
-itKernel = (PyArrayIterObject* )PyArray_IterNew((PyObject*)ain2);
-	if (itKernel == NULL) {
-		return NULL;
-  }
-
-itOut = (PyArrayIterObject* )PyArray_IterNew((PyObject*)aout);
-	if (itOut == NULL) {
-		return NULL;
-	}
-
-
-
-    ret = pylab_convolve_2d (itSignal, 
-			    ain1->dimensions, 
-			    itKernel, 
-			    ain2->dimensions, 
-			    itOut, aout_dimens, flag, DATA(newfill));
-    //ret = pylab_convolve_2d (DATA(ain1),      /* Input data Ns[0] x Ns[1] */
-//   		             STRIDES(ain1),   /* Input strides */
-//		             DATA(aout),      /* Output data */
-//		             STRIDES(aout),   /* Ouput strides */
-//		             DATA(ain2),      /* coefficients in filter */
-//		             STRIDES(ain2),   /* coefficients strides */ 
-//		             DIMS(ain2),      /* Size of kernel Nwin[2] */
-//			     DIMS(ain1),      /* Size of image Ns[0] x Ns[1] */
-//		             flag,            /* convolution parameters */
-//		             DATA(newfill));  /* fill value */
+ 	/*create neighborhood iterators based on boundaries*/
+ 	
+ 	curSignal = (PyArraryNeighborhoodIterObject *)PyArrayNeighborhoodIter_New((PyArrayIterObject *)itSignal,sigbounds);
+ 	if (curSignal == NULL) {PyErr_SetString(PyExc_ValueError, "unsupported mode");}
+ 	
+ 	curKern = (PyArrayNeighborhoodIterObject *)PyArrayNeighborhoodIter_New((PyArrayIterObject *)itKern,kernbounds);
+	if (curSignal == NULL) {PyErr_SetString(PyExc_ValueError, "unsupported mode");}
+	
+	pylab_convolve_2d(*itSignal,*curSignal,*curKern,*itOut,typenum);
 
 
-    switch (ret) {
-    case 0:
-      Py_DECREF(ain1);
-      Py_DECREF(ain2);
-      Py_XDECREF(afill);
-      Py_XDECREF(newfill);
-      return (PyObject *)aout;
-      break;
-    case -5:
-    case -4:
-      PyErr_SetString(PyExc_ValueError,
-		      "convolve2d not available for this type.");
-      goto fail;
-    case -3:
-      PyErr_NoMemory();
-      goto fail;
-    case -2:
-      PyErr_SetString(PyExc_ValueError,
-		      "Invalid boundary type.");
-      goto fail;
-    case -1:
-      PyErr_SetString(PyExc_ValueError,
-		      "Invalid output flag.");
-      goto fail;
-    }
+kernel_f:
+signal_f:
+	
+	return void;
 
-fail:
-    free(aout_dimens);
-    Py_XDECREF(ain1);
-    Py_XDECREF(ain2);
-    Py_XDECREF(aout);
-    Py_XDECREF(afill);
-    Py_XDECREF(newfill);
-    return NULL;
-}
+
+
+
+
 
 /*******************************************************************/
 

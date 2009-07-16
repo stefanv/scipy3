@@ -97,17 +97,25 @@ void convolve2d_worker(PyArrayIterObject *itSignal,
   int i, j;
   mult_and_add = OneMultAdd[typenum];
   if (mult_and_add == NULL) {PYERR("Convolve not available for this type");}
+  int *zero = 0;
+  
+  PyArray_ITER_RESET(itOut);
   
   for (i = 0;i<itOut->size;++i){
+    PyArrayNeighborhoodIter_Reset(curSignal);
+    mult_and_add((char *)itOut->dataptr,(char *)zero,(char *)zero);
+    PyArrayNeighborhoodIter_Reset(curKern);
   	for (j = 0; j < curKern->size;++j){
-  		mult_and_add((char *)itOut,(char *)curSignal,(char *)curKern);
+
+  		
+  		mult_and_add((char *)itOut->dataptr,(char *)curSignal->dataptr,(char *)curKern->dataptr);
   		
   		PyArrayNeighborhoodIter_Next(curSignal);
   		PyArrayNeighborhoodIter_Next(curKern);
 	}
 	PyArray_ITER_NEXT(itSignal);
-	PyArrayNeighborhoodIter_Reset(curSignal);
-	PyArrayNeighborhoodIter_Reset(curKern);
+	PyArray_ITER_NEXT(itOut);
+
 }
   return ;
 }

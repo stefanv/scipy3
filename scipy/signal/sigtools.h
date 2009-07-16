@@ -13,9 +13,9 @@
 
 #define CIRCULAR 8
 #define REFLECT  4
-#define ZPAD     0 
-#define OPAD	 2
-#define CPAD	 1
+#define ZPAD     2 
+#define OPAD	 1
+#define CPAD	 0
 
 #define MAXTYPES 21
 

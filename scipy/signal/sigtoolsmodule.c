@@ -1362,7 +1362,7 @@ static PyObject *sigtools_convolve2d(PyObject *NPY_UNUSED(dummy), PyObject *args
     if (Kernel == NULL) {goto kernel_f;}
 
     if ((boundary == CIRCULAR)||(boundary == REFLECT)||(boundary == OPAD)||(boundary == CPAD)){PyErr_SetString(PyExc_ValueError, "unsupported bounds");goto kernel_f;}
-    if ((mode == VALID)||(mode == SAME)){PyErr_SetString(PyExc_ValueError, "unsupported mode");goto kernel_f;}
+    //if ((mode == VALID)||(mode == SAME)){PyErr_SetString(PyExc_ValueError, "unsupported mode");goto kernel_f;}
     
     /* Swap if first argument is not the largest */
     sigsize = PyArray_Size((PyObject *)Signal);

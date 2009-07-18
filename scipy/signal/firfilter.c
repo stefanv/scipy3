@@ -84,9 +84,6 @@ static OneMultAddFunction *OneMultAdd[]={NULL,
 					 					 CLONGDOUBLE_onemultadd,
                                          NULL, NULL, NULL, NULL};
 
-
-/* This could definitely be more optimized... */
-
 void convolve2d_worker(PyArrayIterObject *itSignal, 
 			 		   PyArrayNeighborhoodIterObject *curSignal,  
 			 		   PyArrayNeighborhoodIterObject *curKern, 
@@ -102,8 +99,8 @@ void convolve2d_worker(PyArrayIterObject *itSignal,
   PyArray_ITER_RESET(itOut);
   
   for (i = 0;i<itOut->size;++i){
+  	mult_and_add((char *)itOut->dataptr,(char *)zero,(char *)zero);
     PyArrayNeighborhoodIter_Reset(curSignal);
-    mult_and_add((char *)itOut->dataptr,(char *)zero,(char *)zero);
     PyArrayNeighborhoodIter_Reset(curKern);
   	for (j = 0; j < curKern->size;++j){
 

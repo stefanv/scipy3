@@ -1347,6 +1347,8 @@ static PyObject *sigtools_convolve2d(PyObject *NPY_UNUSED(dummy), PyObject *args
     PyArrayObject *Signal, *Kernel, *Out,*fillval;
     PyArrayIterObject *itSignal, *itKern, *itOut;
     PyArrayNeighborhoodIterObject *curSignal, *curKern;
+    int neigh_mode;
+
        
     if (!PyArg_ParseTuple(args, "OO|iiO", &in1, &in2, &mode, &boundary, &fill_value)) {
         return NULL;
@@ -1364,6 +1366,15 @@ static PyObject *sigtools_convolve2d(PyObject *NPY_UNUSED(dummy), PyObject *args
     if ((boundary == CIRCULAR)||(boundary == REFLECT)||(boundary == OPAD)||(boundary == CPAD)){PyErr_SetString(PyExc_ValueError, "unsupported bounds");goto kernel_f;}
     //if ((mode == VALID)||(mode == SAME)){PyErr_SetString(PyExc_ValueError, "unsupported mode");goto kernel_f;}
     
+    switch(boundary) {
+        case ZPAD:
+            neigh_mode = NPY_NEIGHBORHOOD_ITER_ZERO_PADDING;
+            break;
+        default:
+            PyErr_SetString(PyExc_ValueError, "unsupported bounds");
+            goto kernel_f;
+            break;
+    }
     /* Swap if first argument is not the largest */
     sigsize = PyArray_Size((PyObject *)Signal);
     kernsize = PyArray_Size((PyObject *)Kernel);
@@ -1428,10 +1439,10 @@ static PyObject *sigtools_convolve2d(PyObject *NPY_UNUSED(dummy), PyObject *args
 
  	/*create neighborhood iterators based on boundaries*/
  	
- 	curSignal = (PyArrayNeighborhoodIterObject *)PyArray_NeighborhoodIterNew((PyArrayIterObject *)itSignal,sigbounds);
+ 	curSignal = (PyArrayNeighborhoodIterObject *)PyArray_NeighborhoodIterNew((PyArrayIterObject *)itSignal,sigbounds, neigh_mode, NULL);
  	if (curSignal == NULL) {PyErr_SetString(PyExc_ValueError, "could not make iterator");goto cursignal_f;}
  	
- 	curKern = (PyArrayNeighborhoodIterObject *)PyArray_NeighborhoodIterNew((PyArrayIterObject *)itKern,kernbounds);
+ 	curKern = (PyArrayNeighborhoodIterObject *)PyArray_NeighborhoodIterNew((PyArrayIterObject *)itKern,kernbounds, neigh_mode, NULL);
 	if (curKern == NULL) {PyErr_SetString(PyExc_ValueError, "could not make iterator");goto curkern_f;}
 	
 	convolve2d_worker((PyArrayIterObject *)itSignal,
@@ -1442,6 +1453,17 @@ static PyObject *sigtools_convolve2d(PyObject *NPY_UNUSED(dummy), PyObject *args
 					  boundary,
 					  (PyArrayObject *)fillval);
 	
+	Py_XDECREF(curKern);
+	Py_XDECREF(curSignal);
+	Py_XDECREF(itOut);
+	Py_XDECREF(itKern);
+	Py_XDECREF(itSignal);
+	Py_XDECREF(fillval);
+	Py_XDECREF(Kernel);
+	Py_XDECREF(Signal);
+	
+    return (PyObject *)Out;
+
 curkern_f:
 	Py_XDECREF(curKern);
 cursignal_f:
@@ -1460,10 +1482,7 @@ kernel_f:
 	Py_XDECREF(Kernel);
 signal_f:
 	Py_XDECREF(Signal);
-	
-return (PyObject *)Out;
-
-
+    return NULL;
 }
 
 

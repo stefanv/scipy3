@@ -314,7 +314,7 @@ def convolve2d(in1, in2, mode='full', boundary='fill', fillvalue=0):
     val = _valfrommode(mode)
     bval = _bvalfromboundary(boundary)
 
-    return sigtools._convolve2d(in1,in2,1,val,bval,fillvalue)
+    return sigtools._convolve2d(in1,in2,val,bval,fillvalue)
 
 def correlate2d(in1, in2, mode='full', boundary='fill', fillvalue=0):
     """Cross-correlate two 2-dimensional arrays.
@@ -350,7 +350,7 @@ def correlate2d(in1, in2, mode='full', boundary='fill', fillvalue=0):
     val = _valfrommode(mode)
     bval = _bvalfromboundary(boundary)
 
-    return sigtools._convolve2d(in1, in2, 0,val,bval,fillvalue)
+    return sigtools._convolve2d(in1, in2, val,bval,fillvalue)
 
 def medfilt2d(input, kernel_size=3):
     """Median filter two 2-dimensional arrays.

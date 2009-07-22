@@ -107,6 +107,9 @@ old_behavior for correlation is deprecated: it is still the default for 0.8, but
 
         z = sigtools._correlateND(in1, in2, out, val)
     else:
+        in1 = np.atleast_1d(in1)
+        in2 = np.atleast_1d(in2)
+
         ps = [i + j - 1 for i, j in zip(in1.shape, in2.shape)]
         # zero pad input
         in1zpadded = np.zeros(ps, in1.dtype)
@@ -190,12 +193,15 @@ def convolve(in1, in2, mode='full'):
     volume = asarray(in1)
     kernel = asarray(in2)
 
-    slice_obj = [slice(None,None,-1)]*len(kernel.shape)
+    if kernel.size > 1:
+        rkernel = kernel[[slice(None,None,-1)]*len(kernel.shape)]
+    else:
+        rkernel = kernel
 
     if np.iscomplexobj(kernel):
-        return correlate(volume, kernel[slice_obj].conj(), mode, old_behavior=False)
+        return correlate(volume, rkernel.conj(), mode, old_behavior=False)
     else:
-        return correlate(volume, kernel[slice_obj], mode, old_behavior=False)
+        return correlate(volume, rkernel, mode, old_behavior=False)
 
 def order_filter(a, domain, rank):
     """Perform an order filter on an N-dimensional array.

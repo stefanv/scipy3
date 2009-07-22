@@ -98,12 +98,12 @@ old_behavior for correlation is deprecated: it is still the default for 0.8, but
 
     if mode == 'valid':
         ps = [i - j + 1 for i, j in zip(in1.shape, in2.shape)]
-        out = np.empty(ps, in1.dtype)
         for i in range(len(ps)):
             if ps[i] <= 0:
                 raise ValueError("Dimension of x(%d) < y(%d) " \
                                  "not compatible with valid mode" % \
-                                 (x.shape[i], y.shape[i]))
+                                 (in1.shape[i], in2.shape[i]))
+        out = np.empty(ps, in1.dtype)
 
         z = sigtools._correlateND(in1, in2, out, val)
     else:

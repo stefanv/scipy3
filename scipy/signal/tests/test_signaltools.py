@@ -59,7 +59,7 @@ class TestConvolve(TestCase):
     def test_valid_mode(self):
         a = [1,2,3,6,5,3]
         b = [2,3,4,5,3,4,2,2,1]
-        c = signal.convolve(a,b,'valid')
+        c = signal.convolve(b, a, 'valid')
         assert_array_equal(c,array([70,78,73,65]))
         #2d function
         e = [[1,2,3],[3,4,5]]
@@ -68,6 +68,11 @@ class TestConvolve(TestCase):
         h = array([[62,80,98,116,134]])
         assert_array_equal(g,h)
         
+        # Test that valid mode raises if b.size > a.size
+        def _test():
+            signal.convolve(a, b, 'valid')
+        self.failUnlessRaises(ValueError, _test)
+
     def test_fillvalue(self):
         a = [[1,2,3],[3,4,5]]
         b = [[2,3,4],[4,5,6]]

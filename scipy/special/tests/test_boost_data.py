@@ -29,11 +29,11 @@ def test_all():
         Data(arccosh, 'acosh_data_ipp/acosh_data.txt', 0, 1),
         Data(arccosh, 'acosh_data_ipp/acosh_data.txt', 0j, 1, rtol=5e-14),
         
-        Data(arcsinh, 'asinh_data_ipp/asinh_data.txt', 0, 1),
-        Data(arcsinh, 'asinh_data_ipp/asinh_data.txt', 0j, 1),
+        Data(arcsinh, 'asinh_data_ipp/asinh_data.txt', 0, 1, rtol=1e-11),
+        Data(arcsinh, 'asinh_data_ipp/asinh_data.txt', 0j, 1, rtol=1e-11),
         
-        Data(arctanh, 'atanh_data_ipp/atanh_data.txt', 0, 1),
-        Data(arctanh, 'atanh_data_ipp/atanh_data.txt', 0j, 1),
+        Data(arctanh, 'atanh_data_ipp/atanh_data.txt', 0, 1, rtol=1e-13),
+        Data(arctanh, 'atanh_data_ipp/atanh_data.txt', 0j, 1, rtol=1e-13),
 
         Data(beta, 'beta_exp_data_ipp/beta_exp_data.txt', (0,1), 2),
         Data(beta, 'beta_exp_data_ipp/beta_exp_data.txt', (0,1), 2),
@@ -78,10 +78,22 @@ def test_all():
         Data(expn, 'expint_small_data_ipp/expint_small_data.txt', (0,1), 2),
         Data(expn, 'expint_data_ipp/expint_data.txt', (0,1), 2),
 
-        Data(gamma, 'gamma_data_ipp/gamma_data.txt', 0, 1),
-        Data(gamma, 'gamma_data_ipp/gamma_data.txt', 0j, 1, rtol=2e-9),
-        Data(gammaln, 'gamma_data_ipp/gamma_data.txt', 0, 2, rtol=5e-11),
-        
+        Data(gamma, 'test_gamma_data_ipp/near_0.txt', 0, 1),
+        Data(gamma, 'test_gamma_data_ipp/near_1.txt', 0, 1),
+        Data(gamma, 'test_gamma_data_ipp/near_2.txt', 0, 1),
+        Data(gamma, 'test_gamma_data_ipp/near_m10.txt', 0, 1),
+        Data(gamma, 'test_gamma_data_ipp/near_m55.txt', 0, 1),
+        Data(gamma, 'test_gamma_data_ipp/near_0.txt', 0j, 1, rtol=2e-9),
+        Data(gamma, 'test_gamma_data_ipp/near_1.txt', 0j, 1, rtol=2e-9),
+        Data(gamma, 'test_gamma_data_ipp/near_2.txt', 0j, 1, rtol=2e-9),
+        Data(gamma, 'test_gamma_data_ipp/near_m10.txt', 0j, 1, rtol=2e-9),
+        Data(gamma, 'test_gamma_data_ipp/near_m55.txt', 0j, 1, rtol=2e-9),
+        Data(gammaln, 'test_gamma_data_ipp/near_0.txt', 0, 2, rtol=5e-11),
+        Data(gammaln, 'test_gamma_data_ipp/near_1.txt', 0, 2, rtol=5e-11),
+        Data(gammaln, 'test_gamma_data_ipp/near_2.txt', 0, 2, rtol=5e-11),
+        Data(gammaln, 'test_gamma_data_ipp/near_m10.txt', 0, 2, rtol=5e-11),
+        Data(gammaln, 'test_gamma_data_ipp/near_m55.txt', 0, 2, rtol=5e-11),
+
         Data(log1p, 'log1p_expm1_data_ipp/log1p_expm1_data.txt', 0, 1),
         Data(expm1, 'log1p_expm1_data_ipp/log1p_expm1_data.txt', 0, 2),
 

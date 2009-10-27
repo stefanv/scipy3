@@ -7,3 +7,6 @@ env = GetNumpyEnvironment(ARGUMENTS)
 for fmt in ['csr','csc','coo','bsr','dia']:
     sources = [ fmt + '_wrap.cxx' ]
     env.NumpyPythonExtension('_%s' % fmt, source = sources)
+
+source = ['_dia_cy.c', env.FromCTemplate('dia.c.src')]
+env.NumpyPythonExtension('_dia_cy', source=source)

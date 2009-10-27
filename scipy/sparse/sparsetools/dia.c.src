@@ -1,0 +1,46 @@
+#include <Python.h>
+#include <numpy/ndarrayobject.h>
+
+#define MAX(x, y) ((x) > (y) ? (x) : (y))
+#define MIN(x, y) ((x) > (y) ? (y) : (x))
+
+/**begin repeat
+ * #index_type = int#
+ */
+
+/**begin repeat1
+ * #value_type = npy_int8, npy_uint8, npy_int16, npy_uint16, npy_int32, npy_uint32, npy_int64, npy_uint64, float, double, npy_longdouble#
+ */
+void 
+dia_matvec_@index_type@_@value_type@(
+    const @index_type@ n_row,
+    const @index_type@ n_col,
+    const @index_type@ n_diags,
+    const @index_type@ L,
+    const @index_type@ offsets[], 
+    const @value_type@ diags[], 
+    const @value_type@ Xx[],
+          @value_type@ Yx[])
+{
+    @index_type@ i, n;
+    for(i = 0; i < n_diags; i++){
+        const @index_type@ k = offsets[i];  //diagonal offset
+
+        const @index_type@ i_start = MAX(0,-k);
+        const @index_type@ j_start = MAX(0, k);
+        const @index_type@ j_end   = MIN(MIN(n_row + k, n_col),L);
+
+        const @index_type@ N = j_end - j_start;  //number of elements to process
+
+        const @value_type@ * diag = diags + i*L + j_start;
+        const @value_type@ * x = Xx + j_start;
+              @value_type@ * y = Yx + i_start;
+
+        for(n = 0; n < N; n++){
+            y[n] += diag[n] * x[n]; 
+        }
+    }
+}
+/**end repeat1**/
+
+/**end repeat**/

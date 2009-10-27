@@ -151,9 +151,10 @@ class dia_matrix(_data_matrix):
 
         M,N = self.shape
 
-        dia_matvec(M,N, len(self.offsets), L, self.offsets, self.data, x.ravel(), y.ravel())
-
-        return y
+        return dia_matvec(M, N, 
+                          len(self.offsets), L,
+                          self.offsets, self.data,
+                          x.ravel(), y.ravel())
 
     def _mul_multimatrix(self, other):
         return np.hstack( [ self._mul_vector(col).reshape(-1,1) for col in other.T ] )
